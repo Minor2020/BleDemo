@@ -19,7 +19,7 @@ class CardAdapter(context: Context, objects: ArrayList<CardModel>) :
         val cardModel = getItem(position)
         item?.apply {
             findViewById<TextView>(R.id.tv_card).apply { text = cardModel?.name }
-            setOnClickListener {  }
+            setOnClickListener { cardModel?.action?.invoke(it) }
         }
         return item!!
     }
