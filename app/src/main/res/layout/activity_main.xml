@@ -14,10 +14,25 @@
         android:layout_marginEnd="15dp"
         android:orientation="vertical">
 
-        <TextView
+<!--        <TextView-->
+<!--            android:id="@+id/tv_info"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_weight="1"-->
+<!--            android:textSize="14dp"-->
+<!--            android:textColor="#800000"-->
+<!--            tools:text="device info"-->
+<!--            />-->
+        <ListView
+            android:id="@+id/lv_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            android:headerDividersEnabled="false"
+            android:dividerHeight="1px"
+            android:divider="#808080"
+            android:scrollbars="none"
+            />
 
         <TextView
             android:id="@+id/tv_tips"
