@@ -3,6 +3,8 @@ package com.zxfh.demo
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothProfile
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -35,6 +37,7 @@ import com.ble.zxfh.sdk.blereader.WDBluetoothDevice
  * @author zxfh
  */
 class MainActivity : AppCompatActivity() {
+    private val MOCK_SEND_DATA = "120005001200000005"
     /** 请求启动蓝牙返回码 */
     private val REQUEST_ENABLE_BT = 1
     /** 按钮面板容器 */
@@ -50,22 +53,47 @@ class MainActivity : AppCompatActivity() {
     /** BLE SDK 回调 */
     private val bleCallback = object : IBLEReader_Callback {
         override fun onLeScan(p0: MutableList<WDBluetoothDevice>?) {
+            sprintInfo("onnLeScan")
         }
 
+        /**
+         * @see 4.6.2 public void onConnectGatt(int status, Object data)
+         */
         override fun onConnectGatt(p0: Int, p1: Any?) {
-
+            val data = p1 as String
+            sprintInfo("onConnectGatt status $p0 data $data")
+            // 连接成功，NOTE！！ 与 Android 规范有出入 status == 0 && newStatus == 2 才表成功
+            // SDK 内部联立判断有 bug，故在此只是借用 GATT_SUCCESS 字面值，也有可能服务没有链接成功
+            if (p0 == BluetoothGatt.GATT_SUCCESS ) {
+            }
         }
 
+        /**
+         * @see 4.6.3  onServicesDiscovered(int status, Object data);
+         */
         override fun onServicesDiscovered(p0: Int, p1: Any?) {
+            val data = p1 as Boolean
+            sprintInfo("onServicesDiscovered status $p0 data $data")
+            if (data) {
+                sprintInfo("发送 mock 数据")
+                BLEReader.getInstance().sendData(MOCK_SEND_DATA.toByteArray())
+            }
         }
 
+        /**
+         * @see 4.6.4 onCharacteristicChanged(int status, Object data)
+         */
         override fun onCharacteristicChanged(p0: Int, p1: Any?) {
+            val data = p1 as ByteArray
+            sprintInfo("onCharacteristicChanged status $p0 data $data")
         }
 
         override fun onReadRemoteRssi(p0: Int) {
+            sprintInfo("onReadRemoteRssi $p0")
         }
 
         override fun onOTA(p0: Int, p1: Any?) {
+            sprintInfo("onOTA status $p0")
         }
 
         override fun onChangeBLEParameter(): Int {
@@ -126,7 +154,7 @@ class MainActivity : AppCompatActivity() {
         val cardAdapter = CardAdapter(this, cardList)
         cardsView?.adapter = cardAdapter
 
-        BLEReader.getInstance().callback = bleCallback
+        BLEReader.getInstance().set_callback(bleCallback)
         initPermissionLauncher()
         // Android 6.0 及以上，需要动态获取权限
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -171,6 +199,8 @@ class MainActivity : AppCompatActivity() {
             setTitle(title)
 
             setPositiveButton("连接") { _, _ ->
+                // 连接发起即可停止扫描
+                BLEReader.getInstance().bluetoothAdapter.cancelDiscovery()
                 val status = BLEReader.getInstance().connectGatt(macAddress)
                 if (status == 0) {
                     sprintInfo("蓝牙已连接")
@@ -279,8 +309,10 @@ class MainActivity : AppCompatActivity() {
      * 输出信息
      */
     private fun sprintInfo(msg: String) {
-        infoAdapter?.add(msg)
-        infoAdapter?.notifyDataSetChanged()
+        runOnUiThread {
+            infoAdapter?.add(msg)
+            infoAdapter?.notifyDataSetChanged()
+        }
     }
 
     /**
@@ -337,6 +369,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun readData() {
+        if (!BLEReader.INSTANCE.isServiceConnected) {
+            sprintInfo("BLE service 未连接")
+            return
+        }
+        val result = BLEReader.INSTANCE.MC_Read_AT88SC102(1, 0, 64, ByteArray(100))
+        sprintInfo("读卡数据返回值 $result")
 
     }
 
@@ -352,12 +390,21 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    /**
+     * 对卡上电
+     */
     private fun upload() {
-
+        if (!BLEReader.INSTANCE.isServiceConnected) {
+            sprintInfo("BLE service 未连接")
+            return
+        }
+        val result = BLEReader.INSTANCE.ICC_Reset(ByteArray(100), IntArray(100))
+        sprintInfo("上电返回值 $result")
     }
 
     private fun disconnect() {
-        BLEReader.INSTANCE.disconnectGatt()
+        val result = BLEReader.INSTANCE.disconnectGatt()
+        sprintInfo("断开链接 $result")
     }
 
     private fun clearScreen() {
