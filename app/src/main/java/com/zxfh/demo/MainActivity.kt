@@ -37,6 +37,9 @@ import com.ble.zxfh.sdk.blereader.WDBluetoothDevice
  * @author zxfh
  */
 class MainActivity : AppCompatActivity() {
+    /** */
+    private val READ_ZONE_CMD = "12000500B00000000A"
+    /** */
     private val MOCK_SEND_DATA = "120005001200000005"
     /** 请求启动蓝牙返回码 */
     private val REQUEST_ENABLE_BT = 1
@@ -50,6 +53,8 @@ class MainActivity : AppCompatActivity() {
     private val macMap: HashMap<String?, String?> = HashMap()
     /** 请求权限回调 */
     private lateinit var requestPermissionLaunch: ActivityResultLauncher<String>
+    /** onCharacteristicChanged 回传数据 */
+    private var dynamicBytes: ByteArray? = null
     /** BLE SDK 回调 */
     private val bleCallback = object : IBLEReader_Callback {
         override fun onLeScan(p0: MutableList<WDBluetoothDevice>?) {
@@ -85,7 +90,13 @@ class MainActivity : AppCompatActivity() {
          */
         override fun onCharacteristicChanged(p0: Int, p1: Any?) {
             val data = p1 as ByteArray
-            sprintInfo("onCharacteristicChanged status $p0 data $data")
+            dynamicBytes = data
+            var bytesStr = StringBuilder()
+            data.forEach {
+                bytesStr.append(it)
+                bytesStr.append(' ')
+            }
+            sprintInfo("onCharacteristicChanged status $p0 data $bytesStr")
         }
 
         override fun onReadRemoteRssi(p0: Int) {
@@ -231,7 +242,7 @@ class MainActivity : AppCompatActivity() {
 
             add(CardModel(1001, "连接设备") { connect() })
             add(CardModel(1002, "对卡上电") { upload() })
-            add(CardModel(1003, "对卡下电") { download() })
+//            add(CardModel(1003, "对卡下电") { download() })
             add(CardModel(1004, "断开链接") { disconnect() })
             add(CardModel(1005, "清空显示") { clearScreen() })
 
@@ -239,12 +250,12 @@ class MainActivity : AppCompatActivity() {
             add(CardModel(2002, "错误次数") { errorCount() })
             add(CardModel(2003, "读卡数据") { readData() })
             add(CardModel(2004, "核对密码") { checkPassword() })
-            add(CardModel(2005, "读卡密码") { readPassword() })
+//            add(CardModel(2005, "读卡密码") { readPassword() })
 
             add(CardModel(3001, "写卡数据") { writeData() })
             add(CardModel(3002, "更改密码") { modifyPassword() })
-            add(CardModel(3003, "保护标志") { protectFlag() })
-            add(CardModel(3004, "保护数据") { protectData() })
+//            add(CardModel(3003, "保护标志") { protectFlag() })
+//            add(CardModel(3004, "保护数据") { protectData() })
             add(CardModel(3005, "模块复位") { reset() })
 
             add(CardModel(4001, "预留按钮") { reservedPlace() })
@@ -330,6 +341,33 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun protectData() {
+
+    }
+
+    private fun protectFlag() {
+
+    }
+
+    private fun readPassword() {
+
+    }
+
+    private fun download() {
+
+    }
+
+    /**
+     * 修改密码
+     */
+    private fun modifyPassword() {
+        val res = BLEReader.INSTANCE.MC_UpdatePIN_AT88SC102(0, "F0F0".toByteArray())
+        sprintInfo("修改密码返回值 $res")
+    }
+
+    /**
+     * 连接设备
+     */
     private fun connect() {
         // 检查蓝牙是否启用
         if (BLEReader.getInstance().isBLEnabled) {
@@ -340,73 +378,75 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 模块复位
+     */
     private fun reset() {
-
+        val res = BLEReader.INSTANCE.ICC_Reset(ByteArray(16), IntArray(2))
+        sprintInfo("卡片复位返回值 $res")
     }
 
-    private fun protectData() {
-
-    }
-
-    private fun protectFlag() {
-
-    }
-
-    private fun modifyPassword() {
-
-    }
-
+    /**
+     * 写卡数据
+     */
     private fun writeData() {
-
+        val res = BLEReader.INSTANCE.MC_Write_AT88SC102(3, 1408, "1234".toByteArray(), 0, 2)
+        sprintInfo("写数据返回值 $res")
     }
 
-    private fun readPassword() {
-
-    }
-
+    /**
+     * 核对密码
+     */
     private fun checkPassword() {
-
+        val res = BLEReader.INSTANCE.MC_VerifyPIN_AT88SC102(0, "4840".toByteArray(), IntArray(1));
+        sprintInfo("验证密码返回值 $res")
     }
 
+    /**
+     * 读卡数据
+     */
     private fun readData() {
-        if (!BLEReader.INSTANCE.isServiceConnected) {
-            sprintInfo("BLE service 未连接")
-            return
-        }
-        val result = BLEReader.INSTANCE.MC_Read_AT88SC102(1, 0, 64, ByteArray(100))
+        val result = BLEReader.INSTANCE.MC_Read_AT88SC102(7, 0, 2, ByteArray(100))
         sprintInfo("读卡数据返回值 $result")
 
     }
 
+    /**
+     * 检测卡类型
+     */
     private fun checkMode() {
-
+        val res = BLEReader.INSTANCE.ICC_GetCardType(false)
+        sprintInfo("卡类型 $res")
     }
 
+    /**
+     * 错误次数判断
+     */
     private fun errorCount() {
-
-    }
-
-    private fun download() {
-
+        val res = BLEReader.INSTANCE.MC_PAC_AT88SC102(0)
+        sprintInfo("错误次数返回值 $res")
     }
 
     /**
      * 对卡上电
      */
     private fun upload() {
-        if (!BLEReader.INSTANCE.isServiceConnected) {
-            sprintInfo("BLE service 未连接")
-            return
-        }
-        val result = BLEReader.INSTANCE.ICC_Reset(ByteArray(100), IntArray(100))
-        sprintInfo("上电返回值 $result")
+//        val result = BLEReader.INSTANCE.ICC_Reset(ByteArray(100), IntArray(100))
+        val res = BLEReader.INSTANCE.sendData(MOCK_SEND_DATA.toByteArray())
+        sprintInfo("上电返回值 $res")
     }
 
+    /**
+     * 断开连接
+     */
     private fun disconnect() {
         val result = BLEReader.INSTANCE.disconnectGatt()
-        sprintInfo("断开链接 $result")
+        sprintInfo("断开连接 $result")
     }
 
+    /**
+     * 清屏
+     */
     private fun clearScreen() {
         infoAdapter?.clear()
     }
