@@ -2,8 +2,12 @@
 buildscript {
     ext.kotlin_version = "1.5.10"
     repositories {
-        google()
-        mavenCentral()
+        google() {
+            url 'https://maven.aliyun.com/repository/google'
+        }
+        mavenCentral() {
+            url 'https://maven.aliyun.com/repository/public'
+        }
     }
     dependencies {
         classpath "com.android.tools.build:gradle:4.2.2"
@@ -16,9 +20,17 @@ buildscript {
 
 allprojects {
     repositories {
-        google()
-        mavenCentral()
-        jcenter() // Warning: this repository is going to shut down soon
+        google() {
+            url 'https://maven.aliyun.com/repository/google'
+        }
+        mavenCentral() {
+            url 'https://maven.aliyun.com/repository/public'
+        }
+        jcenter() {
+            url 'https://maven.aliyun.com/repository/public'
+        }
+
+        // Warning: this repository is going to shut down soon
         flatDir {
             dirs 'libs'
         }
