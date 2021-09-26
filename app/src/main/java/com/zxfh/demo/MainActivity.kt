@@ -4,7 +4,6 @@ import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothProfile
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -29,7 +28,6 @@ import androidx.core.content.ContextCompat
 import com.ble.zxfh.sdk.blereader.BLEReader
 import com.ble.zxfh.sdk.blereader.IBLEReader_Callback
 import com.ble.zxfh.sdk.blereader.WDBluetoothDevice
-import javax.xml.bind.DatatypeConverter
 
 
 /**
@@ -92,7 +90,10 @@ class MainActivity : AppCompatActivity() {
         override fun onCharacteristicChanged(p0: Int, p1: Any?) {
             val data = p1 as ByteArray
             dynamicBytes = data
-            var hexStr = DatatypeConverter.printHexBinary(data)
+            var hexStr = StringBuilder()
+            data.forEach {
+                hexStr.append(String.format("%02X ", it))
+            }
             sprintInfo("onCharacteristicChanged status $p0 data $hexStr")
         }
 
