@@ -29,6 +29,7 @@ import androidx.core.content.ContextCompat
 import com.ble.zxfh.sdk.blereader.BLEReader
 import com.ble.zxfh.sdk.blereader.IBLEReader_Callback
 import com.ble.zxfh.sdk.blereader.WDBluetoothDevice
+import javax.xml.bind.DatatypeConverter
 
 
 /**
@@ -37,10 +38,10 @@ import com.ble.zxfh.sdk.blereader.WDBluetoothDevice
  * @author zxfh
  */
 class MainActivity : AppCompatActivity() {
-    /** */
-    private val READ_ZONE_CMD = "12000500B00000000A"
-    /** */
-    private val MOCK_SEND_DATA = "120005001200000005"
+    /** "12 00 05 00 B0 00 00 00 0A" */
+    private val READ_ZONE_CMD = byteArrayOf(0x12, 0x00, 0x05, 0x00, 0xB0.toByte(), 0x00, 0x00, 0x00, 0x0A)
+    /** hex str "12 00 05 00 12 00 00 00 05" to bytes */
+    private val MOCK_SEND_DATA = byteArrayOf(0x12, 0x00, 0x05, 0x00, 0x12, 0x00, 0x00, 0x00, 0x05)
     /** 请求启动蓝牙返回码 */
     private val REQUEST_ENABLE_BT = 1
     /** 按钮面板容器 */
@@ -81,7 +82,7 @@ class MainActivity : AppCompatActivity() {
             sprintInfo("onServicesDiscovered status $p0 data $data")
             if (data) {
                 sprintInfo("发送 mock 数据")
-                BLEReader.getInstance().sendData(MOCK_SEND_DATA.toByteArray())
+                BLEReader.getInstance().sendData(MOCK_SEND_DATA)
             }
         }
 
@@ -91,12 +92,8 @@ class MainActivity : AppCompatActivity() {
         override fun onCharacteristicChanged(p0: Int, p1: Any?) {
             val data = p1 as ByteArray
             dynamicBytes = data
-            var bytesStr = StringBuilder()
-            data.forEach {
-                bytesStr.append(it)
-                bytesStr.append(' ')
-            }
-            sprintInfo("onCharacteristicChanged status $p0 data $bytesStr")
+            var hexStr = DatatypeConverter.printHexBinary(data)
+            sprintInfo("onCharacteristicChanged status $p0 data $hexStr")
         }
 
         override fun onReadRemoteRssi(p0: Int) {
@@ -432,7 +429,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun upload() {
 //        val result = BLEReader.INSTANCE.ICC_Reset(ByteArray(100), IntArray(100))
-        val res = BLEReader.INSTANCE.sendData(MOCK_SEND_DATA.toByteArray())
+        val res = BLEReader.INSTANCE.sendData(MOCK_SEND_DATA)
         sprintInfo("上电返回值 $res")
     }
 
