@@ -80,7 +80,7 @@ class MainActivity : AppCompatActivity() {
             val data = p1 as Boolean
             sprintInfo("onServicesDiscovered status $p0 data $data")
             if (data) {
-                sprintInfo("Service connected")
+                sprintInfo("蓝牙服务已开启")
             }
         }
 
@@ -361,7 +361,7 @@ class MainActivity : AppCompatActivity() {
     private fun modifyPassword() {
         val res = BLEReader.INSTANCE.MC_UpdatePIN_AT88SC102(PosMemoryCardReaderBLE.AT88SC102_ZONE_TYPE_SC,
             byteArrayOf(0xF0.toByte(), 0xF0.toByte()))
-        sprintInfo("修改密码返回值 $res")
+        sprintInfo("修改密码返回 $res")
     }
 
     /**
@@ -383,14 +383,14 @@ class MainActivity : AppCompatActivity() {
     private fun reset() {
         val res = BLEReader.INSTANCE.ICC_Reset(ByteArray(16), IntArray(2))
         // 返回卡片类型
-        sprintInfo("卡片复位返回值 $res")
+        sprintInfo("卡片复位返回 $res")
     }
 
     /**
      * 写卡数据
      */
     private fun writeData() {
-        val res = BLEReader.INSTANCE.MC_Write_AT88SC102(PosMemoryCardReaderBLE.AT88SC102_ZONE_TYPE_SCAC, 1408,
+        val res = BLEReader.INSTANCE.MC_Write_AT88SC102(PosMemoryCardReaderBLE.AT88SC102_ZONE_TYPE_MTZ, 0,
             byteArrayOf(0x12, 0x34), 0, 2)
         sprintInfo("写数据返回值 $res")
     }
@@ -399,10 +399,9 @@ class MainActivity : AppCompatActivity() {
      * 核对密码
      */
     private fun checkPassword() {
-        val res = BLEReader.INSTANCE.MC_VerifyPIN_AT88SC102(PosMemoryCardReaderBLE.AT88SC102_ZONE_TYPE_SC, byteArrayOf
-            (0x48, 0x40),
-            IntArray(2));
-        sprintInfo("验证密码返回值 $res")
+        val res = BLEReader.INSTANCE.MC_VerifyPIN_AT88SC102(PosMemoryCardReaderBLE.AT88SC102_ZONE_TYPE_SC,
+            byteArrayOf(0x48, 0x40), IntArray(2));
+        sprintInfo("验证密码返回 $res")
     }
 
     /**
@@ -411,7 +410,7 @@ class MainActivity : AppCompatActivity() {
     private fun readData() {
         val result = BLEReader.INSTANCE.MC_Read_AT88SC102(PosMemoryCardReaderBLE.AT88SC102_ZONE_TYPE_MTZ, 0, 2,
             ByteArray(100))
-        sprintInfo("读卡数据返回值 $result")
+        sprintInfo("读卡数据返回 $result")
 
     }
 
@@ -420,8 +419,11 @@ class MainActivity : AppCompatActivity() {
      */
     private fun checkMode() {
         val res = BLEReader.INSTANCE.ICC_GetCardType(false)
-        // 4: BLEReader.CARD_TYPE_AT88SC102
-        sprintInfo("卡类型 $res")
+        if (res == BLEReader.CARD_TYPE_AT88SC102) {
+            sprintInfo("卡类型 CARD_TYPE_AT88SC102 值 $res")
+        } else {
+            sprintInfo("卡类型 $res")
+        }
     }
 
     /**
@@ -429,16 +431,15 @@ class MainActivity : AppCompatActivity() {
      */
     private fun errorCount() {
         val res = BLEReader.INSTANCE.MC_PAC_AT88SC102(PosMemoryCardReaderBLE.AT88SC102_ZONE_TYPE_SCAC)
-        sprintInfo("错误次数返回值 $res")
+        sprintInfo("错误次数返回 $res")
     }
 
     /**
      * 对卡上电
      */
     private fun upload() {
-//        val result = BLEReader.INSTANCE.ICC_Reset(ByteArray(100), IntArray(100))
         val res = BLEReader.INSTANCE.sendData(MOCK_SEND_DATA)
-        sprintInfo("上电返回值 $res")
+        sprintInfo("上电返回 $res")
     }
 
     /**
