@@ -134,10 +134,13 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * 翻转 byteArray
+     * @param bytes 要翻转的byte数组
+     * @param start 第一个翻转元素索引
+     * @param end 最后一个翻转元素索引
      */
     private fun revertByteArray(bytes: ByteArray, start: Int, end: Int) {
         try {
-            for (index in 0 until (end - start) / 2) {
+            for (index in 0 until (end - start + 1) / 2) {
                 val temp = bytes[start + index]
                 bytes[start + index] = bytes[end - index]
                 bytes[end - index] = temp
