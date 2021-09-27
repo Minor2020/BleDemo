@@ -90,10 +90,9 @@ class MainActivity : AppCompatActivity() {
         override fun onCharacteristicChanged(p0: Int, p1: Any?) {
             val data = p1 as ByteArray
             dynamicBytes = data
-            var hexStr = StringBuilder()
-            data.forEach {
-                hexStr.append(String.format("%02X ", it))
-            }
+            // 翻转 dynamicBytes 中 DATA 区域
+            revertDataArray()
+            val hexStr = getHexStr(dynamicBytes)
             sprintInfo("onCharacteristicChanged status $p0 data $hexStr")
         }
 
@@ -107,6 +106,44 @@ class MainActivity : AppCompatActivity() {
 
         override fun onChangeBLEParameter(): Int {
             return 0
+        }
+    }
+
+    /**
+     * 获取十六进制字符串
+     * @param bytes ByteArray
+     */
+    private fun getHexStr(bytes: ByteArray?): String {
+        var hexStr = StringBuilder()
+        bytes?.forEach {
+            hexStr.append(String.format("%02X ", it))
+        }
+        return hexStr.toString()
+    }
+
+    /**
+     * 翻转 DATA 区域
+     */
+    private fun revertDataArray() {
+        dynamicBytes?.let { bytes ->
+            // LEN 标志位，表数据长度，包括 DATA, SW1, SW2
+            val dataLen = bytes[2].toInt() - 2
+            revertByteArray(bytes, 2 + 1, 2 + dataLen)
+        }
+    }
+
+    /**
+     * 翻转 byteArray
+     */
+    private fun revertByteArray(bytes: ByteArray, start: Int, end: Int) {
+        try {
+            for (index in 0 until (end - start) / 2) {
+                val temp = bytes[start + index]
+                bytes[start + index] = bytes[end - index]
+                bytes[end - index] = temp
+            }
+        } catch (e: Exception) {
+            // Ignore
         }
     }
 
@@ -217,7 +254,7 @@ class MainActivity : AppCompatActivity() {
                     sprintInfo("蓝牙连接失败")
                 }
             }
-            setNegativeButton("取消") { _, _ -> com.zxfh.ble.BLEReader.handshake(context)}
+            setNegativeButton("取消") { _, _ -> }
         }.create()
         dialog.show()
         dialog.window?.setBackgroundDrawable(generateDialogBackground())
