@@ -359,7 +359,7 @@ class MainActivity : AppCompatActivity() {
      * 修改密码
      */
     private fun modifyPassword() {
-        val res = BLEReader.INSTANCE.MC_UpdatePIN_AT88SC102(0, "F0F0".toByteArray())
+        val res = BLEReader.INSTANCE.MC_UpdatePIN_AT88SC102(0, byteArrayOf(0xF0.toByte(), 0xF0.toByte()))
         sprintInfo("修改密码返回值 $res")
     }
 
@@ -388,7 +388,7 @@ class MainActivity : AppCompatActivity() {
      * 写卡数据
      */
     private fun writeData() {
-        val res = BLEReader.INSTANCE.MC_Write_AT88SC102(3, 1408, "1234".toByteArray(), 0, 2)
+        val res = BLEReader.INSTANCE.MC_Write_AT88SC102(3, 1408, byteArrayOf(0x12, 0x34), 0, 2)
         sprintInfo("写数据返回值 $res")
     }
 
@@ -396,7 +396,7 @@ class MainActivity : AppCompatActivity() {
      * 核对密码
      */
     private fun checkPassword() {
-        val res = BLEReader.INSTANCE.MC_VerifyPIN_AT88SC102(0, "4840".toByteArray(), IntArray(1));
+        val res = BLEReader.INSTANCE.MC_VerifyPIN_AT88SC102(0, byteArrayOf(0x48, 0x40), IntArray(1));
         sprintInfo("验证密码返回值 $res")
     }
 

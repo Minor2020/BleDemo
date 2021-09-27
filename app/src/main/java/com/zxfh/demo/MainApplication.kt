@@ -10,7 +10,7 @@ class MainApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         BLEReader.getInstance().setApplication(this)
-        BLEReader.getInstance().deviceModel = BLEReader.DEVICE_MODEL_W1981L
+        BLEReader.getInstance().deviceModel = BLEReader.DEVICE_MODEL_W1981
         LOG.setLogEnabled(true)
     }
 }
