@@ -94,8 +94,6 @@ class MainActivity : AppCompatActivity() {
         override fun onCharacteristicChanged(p0: Int, p1: Any?) {
             val data = p1 as ByteArray
             dynamicBytes = data
-            // 翻转 dynamicBytes 中 DATA 区域
-            revertDataArray()
             val hexStr = getHexStr(dynamicBytes)
             sprintInfo("onCharacteristicChanged status $p0 data $hexStr")
         }
