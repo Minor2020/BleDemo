@@ -17,6 +17,7 @@ import android.os.Bundle
 import android.text.SpannableString
 import android.text.style.AbsoluteSizeSpan
 import android.text.style.ForegroundColorSpan
+import android.util.Log
 import android.widget.ArrayAdapter
 import android.widget.GridView
 import android.widget.ListView
@@ -29,6 +30,9 @@ import com.ble.zxfh.sdk.blereader.BLEReader
 import com.ble.zxfh.sdk.blereader.IBLEReader_Callback
 import com.ble.zxfh.sdk.blereader.WDBluetoothDevice
 import com.ble.zxfh.sdk.cardreader.PosMemoryCardReaderBLE
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 
 /**
@@ -213,6 +217,10 @@ class MainActivity : AppCompatActivity() {
         // 发现蓝牙设备会通知此广播
         val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
         registerReceiver(receiver, filter)
+
+        sprintInfo("service uuid " + BLEReader.getInstance().UUID_SERVICE_W1981)
+        sprintInfo("write uuid " + BLEReader.getInstance().UUID_WRITE_W1981)
+        sprintInfo("notification uuid " + BLEReader.getInstance().UUID_NOTIFICATION_W1981)
     }
 
     override fun onDestroy() {
