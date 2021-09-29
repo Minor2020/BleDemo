@@ -82,8 +82,8 @@ public class BLEHandler {
         return strB.toString();
     }
 
-    public void disconnectGatt() {
-        BLEReader.getInstance().disconnectGatt();
+    public int disconnectGatt() {
+        return BLEReader.getInstance().disconnectGatt();
     }
 
     public BluetoothAdapter getBluetoothAdapter() {
