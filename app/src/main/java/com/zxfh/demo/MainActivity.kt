@@ -216,6 +216,7 @@ class MainActivity : AppCompatActivity() {
         val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
         registerReceiver(receiver, filter)
 
+        sprintInfo("客户端持有的 UUID:")
         sprintInfo("service uuid " + BLEReader.getInstance().UUID_SERVICE_W1981)
         sprintInfo("write uuid " + BLEReader.getInstance().UUID_WRITE_W1981)
         sprintInfo("notification uuid " + BLEReader.getInstance().UUID_NOTIFICATION_W1981)
@@ -259,6 +260,8 @@ class MainActivity : AppCompatActivity() {
                 val status = BLEReader.getInstance().connectGatt(macAddress)
                 if (status == 0) {
                     sprintInfo("蓝牙已连接")
+                    sprintInfo("蓝牙固件 UUID: ")
+                    sprintInfo(ReflectionUuid.getDeviceUuid())
                 } else {
                     sprintInfo("蓝牙连接失败")
                 }

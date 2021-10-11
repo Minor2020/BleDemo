@@ -1,10 +1,13 @@
 package com.zxfh.demo;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.Method;
 import java.util.UUID;
 
 import com.ble.zxfh.sdk.blereader.BLEReader;
+
+import android.bluetooth.BluetoothAdapter;
+import android.os.ParcelUuid;
 
 /**
  * 反射修改 UUID
@@ -33,5 +36,25 @@ class ReflectionUuid {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 获取蓝牙设备的 UUID
+     */
+    public static String getDeviceUuid() {
+        try {
+            BluetoothAdapter adapter = BLEReader.getInstance().bluetoothAdapter;
+            Method getUuidsMethod = BluetoothAdapter.class.getDeclaredMethod("getUuids", null);
+            ParcelUuid[] uuids = (ParcelUuid[]) getUuidsMethod.invoke(adapter, null);
+            StringBuilder stringBuilder = new StringBuilder();
+            for (ParcelUuid uuid : uuids) {
+                stringBuilder.append(uuid.getUuid().toString());
+                stringBuilder.append("\n");
+            }
+            return stringBuilder.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "Cannot get uuid by reflection.";
     }
 }
