@@ -21,13 +21,6 @@ class BleSdkAdapter(private val activity: MainActivity) {
 
     /** BLE SDK 回调 */
     private val bleCallback = object : BLEListener {
-//        override fun onLeScan(p0: MutableList<WDBluetoothDevice>?) {
-//            sprintInfo("onnLeScan")
-//        }
-
-        override fun onLeScan(p0: MutableList<com.ble.zxfh.sdk.blereader.WDBluetoothDevice>?) {
-            sprintInfo("onnLeScan")
-        }
 
         /**
          * @see 4.6.2 public void onConnectGatt(int status, Object data)

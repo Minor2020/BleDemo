@@ -1,6 +1,15 @@
 package com.zxfh.blereader;
 
-import com.ble.zxfh.sdk.blereader.IBLEReader_Callback;
+public interface BLEListener {
+    void onConnectGatt(int var1, Object var2);
 
-public interface BLEListener extends IBLEReader_Callback {
+    void onServicesDiscovered(int var1, Object var2);
+
+    void onCharacteristicChanged(int var1, Object var2);
+
+    void onReadRemoteRssi(int var1);
+
+    void onOTA(int var1, Object var2);
+
+    int onChangeBLEParameter();
 }

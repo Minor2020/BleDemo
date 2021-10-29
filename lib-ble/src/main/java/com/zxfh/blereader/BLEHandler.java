@@ -1,11 +1,13 @@
 package com.zxfh.blereader;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.UUID;
 
 import com.ble.zxfh.sdk.blereader.BLEReader;
 import com.ble.zxfh.sdk.blereader.IBLEReader_Callback;
 import com.ble.zxfh.sdk.blereader.LOG;
+import com.ble.zxfh.sdk.blereader.WDBluetoothDevice;
 
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
@@ -67,8 +69,44 @@ public class BLEHandler {
     }
 
 
-    public void setListener(IBLEReader_Callback callback) {
-        BLEReader.getInstance().set_callback(callback);
+    public void setListener(BLEListener callback) {
+        BLEReader.getInstance().set_callback(new IBLEReader_Callback() {
+
+            @Override
+            public void onLeScan(List<WDBluetoothDevice> list) {
+                // Ignore.
+            }
+
+            @Override
+            public void onConnectGatt(int i, Object o) {
+                callback.onConnectGatt(i, o);
+            }
+
+            @Override
+            public void onServicesDiscovered(int i, Object o) {
+                callback.onServicesDiscovered(i, o);
+            }
+
+            @Override
+            public void onCharacteristicChanged(int i, Object o) {
+                callback.onCharacteristicChanged(i, o);
+            }
+
+            @Override
+            public void onReadRemoteRssi(int i) {
+                callback.onReadRemoteRssi(i);
+            }
+
+            @Override
+            public void onOTA(int i, Object o) {
+                callback.onOTA(i, o);
+            }
+
+            @Override
+            public int onChangeBLEParameter() {
+                return callback.onChangeBLEParameter();
+            }
+        });
     }
 
     public String getUuid() {
