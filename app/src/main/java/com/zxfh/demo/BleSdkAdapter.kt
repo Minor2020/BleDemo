@@ -213,4 +213,8 @@ class BleSdkAdapter(private val activity: MainActivity) {
         val result = BLEHandler.getInstance().disconnectGatt()
         sprintInfo("断开连接 $result")
     }
+
+    fun testSM4() {
+        sprintInfo("BLE(${BLEHandler.getInstance().testSM4()})")
+    }
 }

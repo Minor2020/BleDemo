@@ -1,8 +1,11 @@
 package com.zxfh.blereader;
 
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
+
+import org.bouncycastle.util.encoders.Hex;
 
 import com.ble.zxfh.sdk.blereader.BLEReader;
 import com.ble.zxfh.sdk.blereader.IBLEReader_Callback;
@@ -11,6 +14,9 @@ import com.ble.zxfh.sdk.blereader.WDBluetoothDevice;
 
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
+import android.os.Build;
+import android.util.Log;
+import androidx.annotation.RequiresApi;
 
 public class BLEHandler {
 
@@ -248,4 +254,28 @@ public class BLEHandler {
         return BLEReader.getInstance().MC_PAC_AT88SC102(zone);
     }
 
+    /**
+     * SM4 加密支持
+     *
+     */
+    public String testSM4() {
+        try {
+            byte[] content = "sm4对称加密<pkcs5>演示←←".getBytes();
+            byte[] key="1234567890123456".getBytes();
+            // 加密
+            byte[] output = Sm4Util.encryptEcbPkcs5Padding(content, key);
+            String hex = Hex.toHexString(output);
+            Log.d("BLEHandler", "SM4-ECB-PKCS5Padding，加密输出HEX = {}" + hex);
+            // 解密
+            byte[] input = Hex.decode(hex);
+            output = Sm4Util.decryptEcbPkcs5Padding(input, key);
+            String s = new String(output);
+            Log.d("BLEHandler", "SM4-ECB-PKCS5Padding，解密输出 = {}" + s);
+            Log.d("BLEHandler", "SM4-ECB-PKCS5Padding，key = {}" + Hex.toHexString(key));
+            return s;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
 }

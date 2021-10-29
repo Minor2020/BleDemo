@@ -185,7 +185,7 @@ class MainActivity : AppCompatActivity() {
             add(CardModel(3001, "写卡数据") { bleSdkAdapter?.writeData() })
             add(CardModel(3002, "更改密码") { bleSdkAdapter?.modifyPassword() })
             add(CardModel(3005, "模块复位") { bleSdkAdapter?.reset() })
-            add(CardModel(4001, "预留按钮") { reservedPlace() })
+            add(CardModel(4001, "SM4测试") { bleSdkAdapter?.testSM4() })
 
 //            add(CardModel(1003, "对卡下电") { download() })
 //            add(CardModel(2005, "读卡密码") { readPassword() })
@@ -241,13 +241,6 @@ class MainActivity : AppCompatActivity() {
             infoAdapter?.add(msg)
             infoAdapter?.notifyDataSetChanged()
         }
-    }
-
-    /**
-     * 预留按钮位置
-     */
-    private fun reservedPlace() {
-
     }
 
     /**

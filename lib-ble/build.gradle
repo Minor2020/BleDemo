@@ -45,4 +45,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'
     implementation(name:'BleReaderApi_zxfh', ext:'aar')
+//    // SM4
+//    implementation 'cn.hutool:hutool-all:5.7.15'
+
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.69'
 }
