@@ -215,6 +215,6 @@ class BleSdkAdapter(private val activity: MainActivity) {
     }
 
     fun testSM4() {
-        sprintInfo("BLE(${BLEHandler.getInstance().testSM4()})")
+        sprintInfo("BLE(${BLEHandler.getInstance().testSm4()})")
     }
 }

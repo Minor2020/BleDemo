@@ -1,11 +1,16 @@
 package com.zxfh.blereader;
 
 import java.lang.reflect.Field;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
+import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.paddings.BlockCipherPadding;
+import org.bouncycastle.crypto.paddings.ZeroBytePadding;
 import org.bouncycastle.util.encoders.Hex;
+import org.bouncycastle.util.encoders.HexEncoder;
 
 import com.ble.zxfh.sdk.blereader.BLEReader;
 import com.ble.zxfh.sdk.blereader.IBLEReader_Callback;
@@ -14,15 +19,16 @@ import com.ble.zxfh.sdk.blereader.WDBluetoothDevice;
 
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
-import android.os.Build;
 import android.util.Log;
-import androidx.annotation.RequiresApi;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public class BLEHandler {
 
     private volatile static BLEHandler mBleHandler;
     public static final int CARD_TYPE_AT88SC102 = 4;
     private Application mApplication;
+    private static final String MOCK_BLUETOOTH_NAME = "TCHGAS_BTC800001";
 
     private BLEHandler() {
 
@@ -255,27 +261,59 @@ public class BLEHandler {
     }
 
     /**
-     * SM4 加密支持
-     *
+     * SM4 测试
+     * @return
      */
-    public String testSM4() {
+    public String testSm4() {
+        StringBuilder stringBuilder = new StringBuilder();
+        // 1. 转为十六进制字符串; 如果已经是 hexStr 则无需这一步转化
+        String hexContent = Sm4Util.toHex("sm4对称加密<pkCs5>演示←←");
+        // 2. 加密
+        byte[] encryptContent = encryptMsg(hexContent);
+        // 3. 解密
+        byte[] decryptContent = decryptMsg(encryptContent);
         try {
-            byte[] content = "sm4对称加密<pkcs5>演示←←".getBytes();
-            byte[] key="1234567890123456".getBytes();
-            // 加密
-            byte[] output = Sm4Util.encryptEcbPkcs5Padding(content, key);
-            String hex = Hex.toHexString(output);
-            Log.d("BLEHandler", "SM4-ECB-PKCS5Padding，加密输出HEX = {}" + hex);
-            // 解密
-            byte[] input = Hex.decode(hex);
-            output = Sm4Util.decryptEcbPkcs5Padding(input, key);
-            String s = new String(output);
-            Log.d("BLEHandler", "SM4-ECB-PKCS5Padding，解密输出 = {}" + s);
-            Log.d("BLEHandler", "SM4-ECB-PKCS5Padding，key = {}" + Hex.toHexString(key));
-            return s;
+            // 4.解密得到的bytes转为string
+            return new String(decryptContent, "UTF-8");
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return "";
+        return null;
+    }
+
+    /**
+     * 加密信息
+     * @param hexStr 十六进制表示的字符串
+     * @return 加密后的 byte[]
+     */
+    public byte[] encryptMsg(String hexStr) {
+         if (hexStr == null || hexStr.length() % 2 != 0) {
+             return null;
+         }
+         String bluetoothName = getConnectedBluetoothName();
+         if (bluetoothName == null) {
+             return null;
+         }
+         byte[] content = Hex.decode(hexStr);
+         return Sm4Util.encryptData(content, bluetoothName);
+    }
+
+    public byte[] decryptMsg(byte[] data) {
+        if (data == null || data.length <= 0) {
+            return null;
+        }
+        String bluetoothName = getConnectedBluetoothName();
+        if (bluetoothName == null) {
+            return null;
+        }
+        return Sm4Util.decryptData(data, bluetoothName);
+    }
+
+    @Nullable
+    private String getConnectedBluetoothName() {
+        if (BLEReader.getInstance().isServiceConnected()) {
+            return BLEReader.getInstance().getCurDeviceName();
+        }
+        return null;
     }
 }
