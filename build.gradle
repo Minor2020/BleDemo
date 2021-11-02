@@ -8,11 +8,15 @@ buildscript {
         mavenCentral() {
             url 'https://maven.aliyun.com/repository/public'
         }
+        // 使用 jitpack 仓库中的 ble-lib
+        maven {url 'https://jitpack.io'}
     }
+
     dependencies {
         classpath "com.android.tools.build:gradle:4.2.2"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-
+        // 引入多包合并
+        classpath 'com.github.kezong:fat-aar:1.3.6'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -29,11 +33,12 @@ allprojects {
         jcenter() {
             url 'https://maven.aliyun.com/repository/public'
         }
-
         // Warning: this repository is going to shut down soon
         flatDir {
             dirs 'libs'
         }
+        // 本地 maven
+        maven {url 'file:///Users/zhangyongchao02/Temp'}
     }
 }
 

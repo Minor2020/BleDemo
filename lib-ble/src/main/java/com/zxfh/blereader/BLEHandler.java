@@ -19,9 +19,6 @@ import com.ble.zxfh.sdk.blereader.WDBluetoothDevice;
 
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
-import android.util.Log;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 public class BLEHandler {
 
@@ -309,7 +306,6 @@ public class BLEHandler {
         return Sm4Util.decryptData(data, bluetoothName);
     }
 
-    @Nullable
     private String getConnectedBluetoothName() {
         if (BLEReader.getInstance().isServiceConnected()) {
             return BLEReader.getInstance().getCurDeviceName();

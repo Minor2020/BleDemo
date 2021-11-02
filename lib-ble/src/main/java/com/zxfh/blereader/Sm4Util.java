@@ -9,9 +9,6 @@ import javax.crypto.spec.SecretKeySpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 /**
  * 国密SM4分组密码算法工具类（对称加密）
  * <p>GB/T 32907-2016 信息安全技术 SM4分组密码算法</p>
@@ -143,7 +140,7 @@ public class Sm4Util {
      * @param content 正文
      * @return 16字节整数倍
      */
-    private static byte[] formatContent(@NonNull byte[] content) {
+    private static byte[] formatContent(byte[] content) {
         int contentLength = content.length;
         int paddingLength = MODE - contentLength % MODE;
         byte[] result = new byte[contentLength + paddingLength];
@@ -159,7 +156,7 @@ public class Sm4Util {
      * @param content 解密后的返回值
      * @return 原解密内容 byte[]
      */
-    private static byte[] parseResponse(@NonNull byte[] content) {
+    private static byte[] parseResponse(byte[] content) {
         int paddingLength = content[content.length - 1];
         byte[] result = new byte[content.length - paddingLength];
         System.arraycopy(content, 0, result, 0, result.length);
@@ -171,8 +168,7 @@ public class Sm4Util {
      * @param bluetoothName 蓝牙名称
      * @return byte[]
      */
-    @Nullable
-    public static byte[] generateSecondaryKey(@NonNull String bluetoothName) {
+    public static byte[] generateSecondaryKey(String bluetoothName) {
         String bluetoothHexName = toHex(bluetoothName);
         byte[] hashFactor = Hex.decode(bluetoothHexName);
         // 散列因子是从 bluetooth name 得到的。长度可能会 == 16，< 16 or > 16;
@@ -201,7 +197,7 @@ public class Sm4Util {
      * @param arg utf-8 编码的字符串
      * @return
      */
-    public static String toHex(@NonNull String arg) {
+    public static String toHex(String arg) {
         return String.format("%x", new BigInteger(1, arg.getBytes(/*YOUR_CHARSET?*/)));
     }
 
@@ -210,7 +206,7 @@ public class Sm4Util {
      * @param data byte[]
      * @return
      */
-    public static byte[] revertEveryByte(@NonNull byte[] data) {
+    public static byte[] revertEveryByte(byte[] data) {
         byte[] result = new byte[data.length];
         for (int i = 0; i < data.length; i++) {
             // 以 EA 举例 1110 1010, 高位 1010 0000 160 A0

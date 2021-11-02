@@ -68,6 +68,7 @@ dependencies {
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
     // 放法数超限
     implementation("androidx.multidex:multidex:2.0.1")
-
+//    implementation(name:'lib-ble-release', ext:'aar')
     implementation(project(path: ':lib-ble'))
+//    implementation('com.zxfh.blereader:ble-lib:0.0.1')
 }
