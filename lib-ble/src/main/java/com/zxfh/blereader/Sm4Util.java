@@ -209,11 +209,13 @@ public class Sm4Util {
     public static byte[] revertEveryByte(byte[] data) {
         byte[] result = new byte[data.length];
         for (int i = 0; i < data.length; i++) {
-            // 以 EA 举例 1110 1010, 高位 1010 0000 160 A0
-            byte upperByte = (byte) ((data[i] << 4) & 0xF0);
-            // 0000 1110 14 0E
-            byte lowerByte = (byte) ((data[i] >> 4) & 0x0F);
-            result[i] = (byte) (upperByte | lowerByte);
+            int rev = 0;
+            byte item = data[i];
+            for (int j = 0; j < 8; ++j) {
+                rev = (rev << 1) + (item & 1);
+                item >>= 1;
+            }
+            result[i] = (byte)rev;
         }
         return result;
     }
