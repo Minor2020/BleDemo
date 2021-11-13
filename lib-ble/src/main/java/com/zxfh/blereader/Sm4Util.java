@@ -201,25 +201,6 @@ public class Sm4Util {
         return String.format("%x", new BigInteger(1, arg.getBytes(/*YOUR_CHARSET?*/)));
     }
 
-    /**
-     * 翻转 byte array 内每个 byte 的高低位
-     * @param data byte[]
-     * @return
-     */
-    public static byte[] revertEveryByte(byte[] data) {
-        byte[] result = new byte[data.length];
-        for (int i = 0; i < data.length; i++) {
-            int rev = 0;
-            byte item = data[i];
-            for (int j = 0; j < 8; ++j) {
-                rev = (rev << 1) + (item & 1);
-                item >>= 1;
-            }
-            result[i] = (byte)rev;
-        }
-        return result;
-    }
-
     /** 主密钥 */
     private static final String PRIME_KEY = "5348414E58495A484958494E46454948";
     /** 十六取模 */

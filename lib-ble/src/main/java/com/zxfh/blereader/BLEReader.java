@@ -167,9 +167,8 @@ public class BLEReader {
      * @return 0 successful
      */
     public int MC_Write_AT88SC102(int zone, int start_address, byte write_data[], int data_offset, int write_len) {
-        byte[] revertedBytes = Sm4Util.revertEveryByte(write_data);
         return com.ble.zxfh.sdk.blereader.BLEReader
-                .getInstance().MC_Write_AT88SC102(zone, start_address, revertedBytes, data_offset, write_len);
+                .getInstance().MC_Write_AT88SC102(zone, start_address, revertEveryByte(write_data), data_offset, write_len);
     }
 
     /**
@@ -213,9 +212,8 @@ public class BLEReader {
      * @return
      */
     public int MC_Write_AT24C02(int start_address, byte write_data[], int data_offset, int write_len) {
-        byte[] revertedBytes = Sm4Util.revertEveryByte(write_data);
         return com.ble.zxfh.sdk.blereader.BLEReader
-                .getInstance().MC_Write_AT24C02(start_address, revertedBytes, data_offset, write_len);
+                .getInstance().MC_Write_AT24C02(start_address, revertEveryByte(write_data), data_offset, write_len);
     }
 
     /**
@@ -244,7 +242,8 @@ public class BLEReader {
      * @return 0 verify OK
      */
     public int MC_VerifyPIN_AT88SC102(int zone, byte pin[], int out_pin_retry_left[]) {
-        return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().MC_VerifyPIN_AT88SC102(zone, pin, out_pin_retry_left);
+        return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().MC_VerifyPIN_AT88SC102(zone, revertEveryByte(pin),
+                out_pin_retry_left);
     }
 
     /**
@@ -334,5 +333,24 @@ public class BLEReader {
             return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().getCurDeviceName();
         }
         return null;
+    }
+
+    /**
+     * 翻转 byte array 内每个 byte 的高低位
+     * @param data byte[]
+     * @return
+     */
+    private byte[] revertEveryByte(byte[] data) {
+        byte[] result = new byte[data.length];
+        for (int i = 0; i < data.length; i++) {
+            int rev = 0;
+            byte item = data[i];
+            for (int j = 0; j < 8; ++j) {
+                rev = (rev << 1) + (item & 1);
+                item >>= 1;
+            }
+            result[i] = (byte)rev;
+        }
+        return result;
     }
 }
