@@ -189,8 +189,10 @@ public final class SdkApiSample {
      */
     public final void checkMode() {
         int res = BLEReader.getInstance().ICC_GetCardType(false);
-        if (res == 4) {
+        if (res == BLEReader.CARD_TYPE_AT88SC102) {
             sprintInfo("卡类型 CARD_TYPE_AT88SC102 值 " + res);
+        } else if (res == BLEReader.CARD_TYPE_AT24C02) {
+            sprintInfo("卡类型 CARD_TYPE_AT24C02 值 " + res);
         } else {
             sprintInfo("卡类型 " + res);
         }

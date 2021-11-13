@@ -16,6 +16,7 @@ public class BLEReader {
 
     private volatile static BLEReader sMBleReader;
     public static final int CARD_TYPE_AT88SC102 = 4;
+    public static final int CARD_TYPE_AT24C02 = 2;
     private Application mApplication;
     private static final String MOCK_BLUETOOTH_NAME = "TCHGAS_BTC800001";
 
