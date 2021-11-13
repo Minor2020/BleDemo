@@ -20,6 +20,7 @@ import android.widget.GridView
 import android.widget.ListView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -41,7 +42,7 @@ class MainActivity : AppCompatActivity() {
     /** 信息listAdapter */
     private var infoAdapter: ArrayAdapter<String>? = null
     /** BLE sdk 接入适配器 */
-    private var bleSdkAdapter: BleSdkAdapter? = null
+    private var bleSdkAdapter: SdkApiSample? = null
     /** 只为了 mac 去重显示 */
     private val macMap: HashMap<String?, String?> = HashMap()
     /** 请求权限回调 */
@@ -100,7 +101,7 @@ class MainActivity : AppCompatActivity() {
         val cardAdapter = CardAdapter(this, cardList)
         cardsView?.adapter = cardAdapter
 
-        bleSdkAdapter = BleSdkAdapter(this)
+        bleSdkAdapter = SdkApiSample(this)
 
         initPermissionLauncher()
         // Android 6.0 及以上，需要动态获取权限
@@ -210,12 +211,15 @@ class MainActivity : AppCompatActivity() {
     /**
      * 检查权限
      */
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun checkPermission() {
-        when {
-            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED -> { performAction() }
-            shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> { showInContextUI() }
-            else -> {requestPermissionLaunch.launch(Manifest.permission.ACCESS_FINE_LOCATION)}
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            when {
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED -> { performAction() }
+                shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> { showInContextUI() }
+                else -> {requestPermissionLaunch.launch(Manifest.permission.ACCESS_FINE_LOCATION)}
+            }
         }
     }
 

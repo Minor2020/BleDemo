@@ -11,6 +11,7 @@ import com.zxfh.blereader.PosMemoryConstants
 /**
  * 该类用做适配 BLE SDK Api 调用
  */
+@Deprecated("Warning", ReplaceWith("SdkApiSample"))
 class BleSdkAdapter(private val activity: MainActivity) {
     /** "12 00 05 00 B0 00 00 00 0A" */
     private val READ_ZONE_CMD = byteArrayOf(0x12, 0x00, 0x05, 0x00, 0xB0.toByte(), 0x00, 0x00, 0x00, 0x0A)
