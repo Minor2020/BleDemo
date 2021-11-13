@@ -1,6 +1,7 @@
 package com.zxfh.blereader;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,6 +20,8 @@ public class BLEReader {
     public static final int CARD_TYPE_AT24C02 = 2;
     private Application mApplication;
     private static final String MOCK_BLUETOOTH_NAME = "TCHGAS_BTC800001";
+    /** 加密指令 */
+    private static final int ENCRYPT = 80;
 
     private BLEReader() {
 
@@ -40,6 +43,7 @@ public class BLEReader {
         com.ble.zxfh.sdk.blereader.BLEReader.getInstance().setApplication(mApplication);
         com.ble.zxfh.sdk.blereader.BLEReader.getInstance().setDeviceModel(com.ble.zxfh.sdk.blereader.BLEReader.DEVICE_MODEL_W1981);
         modifyUuid();
+        setCLA(ENCRYPT);
     }
 
     public void setLogEnabled(boolean enabled) {
@@ -53,6 +57,25 @@ public class BLEReader {
         modify("UUID_SERVICE_W1981", "0000FFF0-0000-1000-8000-00805F9B34FB");
         modify("UUID_WRITE_W1981", "0000FFF5-0000-1000-8000-00805F9B34FB");
         modify("UUID_NOTIFICATION_W1981", "0000FFF4-0000-1000-8000-00805F9B34FB");
+    }
+
+    /**
+     * 修改 CLA (public final int)
+     * @param action 加密或者明文，默认是明文
+     */
+    public void setCLA(int action) {
+        try {
+            Field field = com.ble.zxfh.sdk.blereader.BLEReader.getInstance()
+                    .getClass().getDeclaredField("CLA");
+            field.setAccessible(true);
+            Field modifersField = Field.class.getDeclaredField("modifiers");
+            modifersField.setAccessible(true);
+            // 把指定的field中的final修饰符去掉
+            modifersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+            field.set(null, action); // 为指定field设置新值
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
