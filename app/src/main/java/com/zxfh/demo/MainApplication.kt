@@ -1,13 +1,12 @@
 package com.zxfh.demo
 
-import android.app.Application
 import androidx.multidex.MultiDexApplication
-import com.zxfh.blereader.BLEHandler
+import com.zxfh.blereader.BLEReader
 
 class MainApplication : MultiDexApplication() {
     override fun onCreate() {
         super.onCreate()
-        BLEHandler.getInstance().setApplication(this)
-        BLEHandler.getInstance().setLogEnabled(true)
+        BLEReader.getInstance().setApplication(this)
+        BLEReader.getInstance().setLogEnabled(true)
     }
 }

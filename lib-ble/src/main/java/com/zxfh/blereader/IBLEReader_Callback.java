@@ -1,6 +1,9 @@
 package com.zxfh.blereader;
 
-public interface BLEListener {
+/**
+ * 透传
+ */
+public interface IBLEReader_Callback {
     void onConnectGatt(int var1, Object var2);
 
     void onServicesDiscovered(int var1, Object var2);

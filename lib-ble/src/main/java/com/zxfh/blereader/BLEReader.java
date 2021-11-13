@@ -1,51 +1,43 @@
 package com.zxfh.blereader;
 
 import java.lang.reflect.Field;
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
-import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.paddings.BlockCipherPadding;
-import org.bouncycastle.crypto.paddings.ZeroBytePadding;
 import org.bouncycastle.util.encoders.Hex;
-import org.bouncycastle.util.encoders.HexEncoder;
 
-import com.ble.zxfh.sdk.blereader.BLEReader;
-import com.ble.zxfh.sdk.blereader.IBLEReader_Callback;
 import com.ble.zxfh.sdk.blereader.LOG;
 import com.ble.zxfh.sdk.blereader.WDBluetoothDevice;
 
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
 
-public class BLEHandler {
+public class BLEReader {
 
-    private volatile static BLEHandler mBleHandler;
+    private volatile static BLEReader sMBleReader;
     public static final int CARD_TYPE_AT88SC102 = 4;
     private Application mApplication;
     private static final String MOCK_BLUETOOTH_NAME = "TCHGAS_BTC800001";
 
-    private BLEHandler() {
+    private BLEReader() {
 
     }
 
-    public static BLEHandler getInstance() {
-        if (mBleHandler == null) {
-            synchronized (BLEHandler.class) {
-                if (mBleHandler == null) {
-                    mBleHandler = new BLEHandler();
+    public static BLEReader getInstance() {
+        if (sMBleReader == null) {
+            synchronized (BLEReader.class) {
+                if (sMBleReader == null) {
+                    sMBleReader = new BLEReader();
                 }
             }
         }
-        return mBleHandler;
+        return sMBleReader;
     }
 
     public void setApplication(Application application) {
         mApplication = application;
-        BLEReader.getInstance().setApplication(mApplication);
-        BLEReader.getInstance().setDeviceModel(BLEReader.DEVICE_MODEL_W1981);
+        com.ble.zxfh.sdk.blereader.BLEReader.getInstance().setApplication(mApplication);
+        com.ble.zxfh.sdk.blereader.BLEReader.getInstance().setDeviceModel(com.ble.zxfh.sdk.blereader.BLEReader.DEVICE_MODEL_W1981);
         modifyUuid();
     }
 
@@ -69,17 +61,17 @@ public class BLEHandler {
      */
     private void modify(String name, String changed) {
         try {
-            Field field = BLEReader.getInstance().getClass().getDeclaredField(name);
+            Field field = com.ble.zxfh.sdk.blereader.BLEReader.getInstance().getClass().getDeclaredField(name);
             field.setAccessible(true);
-            field.set(BLEReader.getInstance(), UUID.fromString(changed));
+            field.set(com.ble.zxfh.sdk.blereader.BLEReader.getInstance(), UUID.fromString(changed));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
 
-    public void setListener(BLEListener callback) {
-        BLEReader.getInstance().set_callback(new IBLEReader_Callback() {
+    public void setListener(IBLEReader_Callback callback) {
+        com.ble.zxfh.sdk.blereader.BLEReader.getInstance().set_callback(new com.ble.zxfh.sdk.blereader.IBLEReader_Callback() {
 
             @Override
             public void onLeScan(List<WDBluetoothDevice> list) {
@@ -121,28 +113,28 @@ public class BLEHandler {
     public String getUuid() {
         StringBuilder strB = new StringBuilder();
         strB.append("UUID - service ");
-        strB.append(BLEReader.getInstance().UUID_SERVICE_W1981);
+        strB.append(com.ble.zxfh.sdk.blereader.BLEReader.getInstance().UUID_SERVICE_W1981);
         strB.append(" write ");
-        strB.append(BLEReader.getInstance().UUID_WRITE_W1981);
+        strB.append(com.ble.zxfh.sdk.blereader.BLEReader.getInstance().UUID_WRITE_W1981);
         strB.append(" notification ");
-        strB.append(BLEReader.getInstance().UUID_NOTIFICATION_W1981);
+        strB.append(com.ble.zxfh.sdk.blereader.BLEReader.getInstance().UUID_NOTIFICATION_W1981);
         return strB.toString();
     }
 
     public int disconnectGatt() {
-        return BLEReader.getInstance().disconnectGatt();
+        return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().disconnectGatt();
     }
 
     public BluetoothAdapter getBluetoothAdapter() {
-        return BLEReader.getInstance().bluetoothAdapter;
+        return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().bluetoothAdapter;
     }
 
     public int connectGatt(String macAddress) {
-        return BLEReader.getInstance().connectGatt(macAddress);
+        return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().connectGatt(macAddress);
     }
 
     public boolean isBLEnabled() {
-        return BLEReader.getInstance().isBLEnabled();
+        return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().isBLEnabled();
     }
 
     /**
@@ -152,7 +144,7 @@ public class BLEHandler {
      * @return 0 update ok
      */
     public int MC_UpdatePIN_AT88SC102(int zone, byte pin[]) {
-        return BLEReader.getInstance().MC_UpdatePIN_AT88SC102(zone, pin);
+        return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().MC_UpdatePIN_AT88SC102(zone, pin);
     }
 
     /**
@@ -162,7 +154,7 @@ public class BLEHandler {
      * @return card type
      */
     public int ICC_Reset(byte[] out_atr, int out_atrlen[]) {
-        return BLEReader.getInstance().ICC_Reset(out_atr, out_atrlen);
+        return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().ICC_Reset(out_atr, out_atrlen);
     }
 
     /**
@@ -175,7 +167,8 @@ public class BLEHandler {
      * @return 0 successful
      */
     public int MC_Write_AT88SC102(int zone, int start_address, byte write_data[], int data_offset, int write_len) {
-        return BLEReader.getInstance().MC_Write_AT88SC102(zone, start_address, write_data, data_offset, write_len);
+        return com.ble.zxfh.sdk.blereader.BLEReader
+                .getInstance().MC_Write_AT88SC102(zone, start_address, write_data, data_offset, write_len);
     }
 
     /**
@@ -191,7 +184,7 @@ public class BLEHandler {
      * @return 0 verify OK
      */
     public int MC_VerifyPIN_AT88SC102(int zone, byte pin[], int out_pin_retry_left[]) {
-        return BLEReader.getInstance().MC_VerifyPIN_AT88SC102(zone, pin, out_pin_retry_left);
+        return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().MC_VerifyPIN_AT88SC102(zone, pin, out_pin_retry_left);
     }
 
     /**
@@ -221,7 +214,8 @@ public class BLEHandler {
      * @return
      */
     public int MC_Read_AT88SC102(int zone, int start_address, int read_len, byte out_data[]) {
-        return BLEReader.getInstance().MC_Read_AT88SC102(zone, start_address, read_len, out_data);
+        return com.ble.zxfh.sdk.blereader.BLEReader
+                .getInstance().MC_Read_AT88SC102(zone, start_address, read_len, out_data);
     }
 
     /**
@@ -230,7 +224,7 @@ public class BLEHandler {
      * @return card type
      */
     public int ICC_GetCardType(boolean bFromCache) {
-        return BLEReader.getInstance().ICC_GetCardType(bFromCache);
+        return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().ICC_GetCardType(bFromCache);
     }
 
     /**
@@ -245,7 +239,7 @@ public class BLEHandler {
      * @return
      */
     public synchronized int sendData(byte[] data) {
-        return BLEReader.getInstance().sendData(data);
+        return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().sendData(data);
     }
 
     /**
@@ -254,7 +248,7 @@ public class BLEHandler {
      * @return return >=0: value of 'pin access counter'
      */
     public int MC_PAC_AT88SC102(int zone) {
-        return BLEReader.getInstance().MC_PAC_AT88SC102(zone);
+        return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().MC_PAC_AT88SC102(zone);
     }
 
     /**
@@ -307,8 +301,8 @@ public class BLEHandler {
     }
 
     private String getConnectedBluetoothName() {
-        if (BLEReader.getInstance().isServiceConnected()) {
-            return BLEReader.getInstance().getCurDeviceName();
+        if (com.ble.zxfh.sdk.blereader.BLEReader.getInstance().isServiceConnected()) {
+            return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().getCurDeviceName();
         }
         return null;
     }

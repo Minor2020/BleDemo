@@ -4,8 +4,8 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.content.Intent
-import com.zxfh.blereader.BLEHandler
-import com.zxfh.blereader.BLEListener
+import com.zxfh.blereader.BLEReader
+import com.zxfh.blereader.IBLEReader_Callback
 import com.zxfh.blereader.PosMemoryConstants
 
 /**
@@ -20,7 +20,7 @@ class BleSdkAdapter(private val activity: MainActivity) {
     private var dynamicBytes: ByteArray? = null
 
     /** BLE SDK 回调 */
-    private val bleCallback = object : BLEListener {
+    private val bleCallback = object : IBLEReader_Callback {
 
         /**
          * @see 4.6.2 public void onConnectGatt(int status, Object data)
@@ -69,12 +69,12 @@ class BleSdkAdapter(private val activity: MainActivity) {
     }
 
     init {
-        BLEHandler.getInstance().setListener(bleCallback)
+        BLEReader.getInstance().setListener(bleCallback)
     }
 
 
     private fun printUuid() {
-        sprintInfo(BLEHandler.getInstance().uuid)
+        sprintInfo(BLEReader.getInstance().uuid)
     }
 
     private fun sprintInfo(msg: String) {
@@ -85,7 +85,7 @@ class BleSdkAdapter(private val activity: MainActivity) {
      * 释放蓝牙
      */
     fun releaseGatt() {
-        BLEHandler.getInstance().disconnectGatt()
+        BLEReader.getInstance().disconnectGatt()
     }
 
     /**
@@ -93,15 +93,15 @@ class BleSdkAdapter(private val activity: MainActivity) {
      */
     private fun scanDevices() {
         sprintInfo("蓝牙扫描开始...")
-        BLEHandler.getInstance().bluetoothAdapter.startDiscovery()
+        BLEReader.getInstance().bluetoothAdapter.startDiscovery()
     }
 
     /**
      * 蓝牙配对
      */
     fun pairBle(macAddress: String?): Int {
-        BLEHandler.getInstance().bluetoothAdapter.cancelDiscovery()
-        return BLEHandler.getInstance().connectGatt(macAddress)
+        BLEReader.getInstance().bluetoothAdapter.cancelDiscovery()
+        return BLEReader.getInstance().connectGatt(macAddress)
     }
 
     /**
@@ -109,7 +109,7 @@ class BleSdkAdapter(private val activity: MainActivity) {
      */
     fun pairedDevices() {
         sprintInfo("已连接设备")
-        val pairedDevices: Set<BluetoothDevice>? = BLEHandler.getInstance().bluetoothAdapter.bondedDevices
+        val pairedDevices: Set<BluetoothDevice>? = BLEReader.getInstance().bluetoothAdapter.bondedDevices
         val deviceInfo = StringBuilder()
         pairedDevices?.forEach { device ->
             val deviceName = device.name
@@ -123,7 +123,7 @@ class BleSdkAdapter(private val activity: MainActivity) {
      * 修改密码
      */
     fun modifyPassword() {
-        val res = BLEHandler.getInstance().MC_UpdatePIN_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_SC,
+        val res = BLEReader.getInstance().MC_UpdatePIN_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_SC,
             byteArrayOf(0xF0.toByte(), 0xF0.toByte()))
         sprintInfo("修改密码返回 $res")
     }
@@ -133,7 +133,7 @@ class BleSdkAdapter(private val activity: MainActivity) {
      */
     fun connect() {
         // 检查蓝牙是否启用
-        if (BLEHandler.getInstance().isBLEnabled) {
+        if (BLEReader.getInstance().isBLEnabled) {
             scanDevices()
         } else {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
@@ -145,7 +145,7 @@ class BleSdkAdapter(private val activity: MainActivity) {
      * 模块复位
      */
     fun reset() {
-        val res = BLEHandler.getInstance().ICC_Reset(ByteArray(16), IntArray(2))
+        val res = BLEReader.getInstance().ICC_Reset(ByteArray(16), IntArray(2))
         // 返回卡片类型
         sprintInfo("卡片复位返回 $res")
     }
@@ -154,7 +154,7 @@ class BleSdkAdapter(private val activity: MainActivity) {
      * 写卡数据
      */
     fun writeData() {
-        val res = BLEHandler.getInstance().MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_MTZ, 0,
+        val res = BLEReader.getInstance().MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_MTZ, 0,
             byteArrayOf(0x12, 0x34), 0, 2)
         sprintInfo("写数据返回值 $res")
     }
@@ -163,7 +163,7 @@ class BleSdkAdapter(private val activity: MainActivity) {
      * 核对密码
      */
     fun checkPassword() {
-        val res = BLEHandler.getInstance().MC_VerifyPIN_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_SC,
+        val res = BLEReader.getInstance().MC_VerifyPIN_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_SC,
             byteArrayOf(0x48, 0x40), IntArray(2));
         sprintInfo("验证密码返回 $res")
     }
@@ -172,7 +172,7 @@ class BleSdkAdapter(private val activity: MainActivity) {
      * 读卡数据
      */
     fun readData() {
-        val result = BLEHandler.getInstance().MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_MTZ, 0, 2,
+        val result = BLEReader.getInstance().MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_MTZ, 0, 2,
             ByteArray(100))
         sprintInfo("读卡数据返回 $result")
 
@@ -182,8 +182,8 @@ class BleSdkAdapter(private val activity: MainActivity) {
      * 检测卡类型
      */
     fun checkMode() {
-        val res = BLEHandler.getInstance().ICC_GetCardType(false)
-        if (res == BLEHandler.CARD_TYPE_AT88SC102) {
+        val res = BLEReader.getInstance().ICC_GetCardType(false)
+        if (res == BLEReader.CARD_TYPE_AT88SC102) {
             sprintInfo("卡类型 CARD_TYPE_AT88SC102 值 $res")
         } else {
             sprintInfo("卡类型 $res")
@@ -194,7 +194,7 @@ class BleSdkAdapter(private val activity: MainActivity) {
      * 错误次数判断
      */
     fun errorCount() {
-        val res = BLEHandler.getInstance().MC_PAC_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_SCAC)
+        val res = BLEReader.getInstance().MC_PAC_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_SCAC)
         sprintInfo("错误次数返回 $res")
     }
 
@@ -202,7 +202,7 @@ class BleSdkAdapter(private val activity: MainActivity) {
      * 对卡上电
      */
     fun upload() {
-        val res = BLEHandler.getInstance().sendData(MOCK_SEND_DATA)
+        val res = BLEReader.getInstance().sendData(MOCK_SEND_DATA)
         sprintInfo("上电返回 $res")
     }
 
@@ -210,11 +210,11 @@ class BleSdkAdapter(private val activity: MainActivity) {
      * 断开连接
      */
     fun disconnect() {
-        val result = BLEHandler.getInstance().disconnectGatt()
+        val result = BLEReader.getInstance().disconnectGatt()
         sprintInfo("断开连接 $result")
     }
 
     fun testSM4() {
-        sprintInfo("BLE(${BLEHandler.getInstance().testSm4()})")
+        sprintInfo("BLE(${BLEReader.getInstance().testSm4()})")
     }
 }
