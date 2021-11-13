@@ -167,24 +167,9 @@ public class BLEReader {
      * @return 0 successful
      */
     public int MC_Write_AT88SC102(int zone, int start_address, byte write_data[], int data_offset, int write_len) {
+        byte[] revertedBytes = Sm4Util.revertEveryByte(write_data);
         return com.ble.zxfh.sdk.blereader.BLEReader
-                .getInstance().MC_Write_AT88SC102(zone, start_address, write_data, data_offset, write_len);
-    }
-
-    /**
-     * Verify the PIN of AT88SC102
-     * <p>
-     *      for PosMemoryCardReader.AT88SC102_ZONE_TYPE_SC, pin length must be 2
-     *      for PosMemoryCardReader.AT88SC102_ZONE_TYPE_EZ1, pin length must be 6
-     *      for PosMemoryCardReader.AT88SC102_ZONE_TYPE_EZ2, pin length must be 4
-     * </p>
-     * @param zone
-     * @param pin
-     * @param out_pin_retry_left
-     * @return 0 verify OK
-     */
-    public int MC_VerifyPIN_AT88SC102(int zone, byte pin[], int out_pin_retry_left[]) {
-        return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().MC_VerifyPIN_AT88SC102(zone, pin, out_pin_retry_left);
+                .getInstance().MC_Write_AT88SC102(zone, start_address, revertedBytes, data_offset, write_len);
     }
 
     /**
@@ -216,6 +201,50 @@ public class BLEReader {
     public int MC_Read_AT88SC102(int zone, int start_address, int read_len, byte out_data[]) {
         return com.ble.zxfh.sdk.blereader.BLEReader
                 .getInstance().MC_Read_AT88SC102(zone, start_address, read_len, out_data);
+    }
+
+    /**
+     * Write data to AT24C02
+     * valid space [0~255] of this card
+     * @param start_address
+     * @param write_data
+     * @param data_offset
+     * @param write_len
+     * @return
+     */
+    public int MC_Write_AT24C02(int start_address, byte write_data[], int data_offset, int write_len) {
+        byte[] revertedBytes = Sm4Util.revertEveryByte(write_data);
+        return com.ble.zxfh.sdk.blereader.BLEReader
+                .getInstance().MC_Write_AT24C02(start_address, revertedBytes, data_offset, write_len);
+    }
+
+    /**
+     * Read data of AT24C02
+     * valid space [0~255] of this card
+     * @param start_address
+     * @param read_len
+     * @param out_data
+     * @return return >0 length of data read
+     */
+    public int MC_Read_AT24C02(int start_address, int read_len, byte out_data[]) {
+        return com.ble.zxfh.sdk.blereader.BLEReader
+                .getInstance().MC_Read_AT24C02(start_address, read_len, out_data);
+    }
+
+    /**
+     * Verify the PIN of AT88SC102
+     * <p>
+     *      for PosMemoryCardReader.AT88SC102_ZONE_TYPE_SC, pin length must be 2
+     *      for PosMemoryCardReader.AT88SC102_ZONE_TYPE_EZ1, pin length must be 6
+     *      for PosMemoryCardReader.AT88SC102_ZONE_TYPE_EZ2, pin length must be 4
+     * </p>
+     * @param zone
+     * @param pin
+     * @param out_pin_retry_left
+     * @return 0 verify OK
+     */
+    public int MC_VerifyPIN_AT88SC102(int zone, byte pin[], int out_pin_retry_left[]) {
+        return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().MC_VerifyPIN_AT88SC102(zone, pin, out_pin_retry_left);
     }
 
     /**
