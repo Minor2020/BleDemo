@@ -172,7 +172,8 @@ public final class SdkApiSample {
      * 核对密码
      */
     public final void checkPassword() {
-        int res = BLEReader.getInstance().MC_VerifyPIN_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_SC, new byte[] {72, 64}, new int[2]);
+        int res = BLEReader.getInstance().MC_VerifyPIN_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_SC,
+                new byte[] {(byte) 0xF0, (byte) 0xF0}, new int[2]);
         sprintInfo("验证密码返回 " + res);
     }
 

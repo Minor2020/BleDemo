@@ -144,8 +144,8 @@ public class BLEReader {
      * @param pin pin length must be 2
      * @return 0 update ok
      */
-    public int MC_UpdatePIN_AT88SC102(int zone, byte pin[]) {
-        return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().MC_UpdatePIN_AT88SC102(zone, pin);
+    public int MC_UpdatePIN_AT88SC102(int zone, byte[] pin) {
+        return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().MC_UpdatePIN_AT88SC102(zone, revertEveryByte(pin));
     }
 
     /**
@@ -154,7 +154,7 @@ public class BLEReader {
      * @param out_atrlen out_atrlen[0] the length of card ATR
      * @return card type
      */
-    public int ICC_Reset(byte[] out_atr, int out_atrlen[]) {
+    public int ICC_Reset(byte[] out_atr, int[] out_atrlen) {
         return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().ICC_Reset(out_atr, out_atrlen);
     }
 
@@ -167,7 +167,7 @@ public class BLEReader {
      * @param write_len length of writing
      * @return 0 successful
      */
-    public int MC_Write_AT88SC102(int zone, int start_address, byte write_data[], int data_offset, int write_len) {
+    public int MC_Write_AT88SC102(int zone, int start_address, byte[] write_data, int data_offset, int write_len) {
         return com.ble.zxfh.sdk.blereader.BLEReader
                 .getInstance().MC_Write_AT88SC102(zone, start_address, revertEveryByte(write_data), data_offset, write_len);
     }
@@ -198,7 +198,7 @@ public class BLEReader {
      * @param out_data
      * @return
      */
-    public int MC_Read_AT88SC102(int zone, int start_address, int read_len, byte out_data[]) {
+    public int MC_Read_AT88SC102(int zone, int start_address, int read_len, byte[] out_data) {
         return com.ble.zxfh.sdk.blereader.BLEReader
                 .getInstance().MC_Read_AT88SC102(zone, start_address, read_len, out_data);
     }
@@ -212,9 +212,9 @@ public class BLEReader {
      * @param write_len
      * @return
      */
-    public int MC_Write_AT24C02(int start_address, byte write_data[], int data_offset, int write_len) {
+    public int MC_Write_AT24C02(int start_address, byte[] write_data, int data_offset, int write_len) {
         return com.ble.zxfh.sdk.blereader.BLEReader
-                .getInstance().MC_Write_AT24C02(start_address, revertEveryByte(write_data), data_offset, write_len);
+                .getInstance().MC_Write_AT24C02(start_address, write_data, data_offset, write_len);
     }
 
     /**
@@ -225,7 +225,7 @@ public class BLEReader {
      * @param out_data
      * @return return >0 length of data read
      */
-    public int MC_Read_AT24C02(int start_address, int read_len, byte out_data[]) {
+    public int MC_Read_AT24C02(int start_address, int read_len, byte[] out_data) {
         return com.ble.zxfh.sdk.blereader.BLEReader
                 .getInstance().MC_Read_AT24C02(start_address, read_len, out_data);
     }
@@ -242,7 +242,7 @@ public class BLEReader {
      * @param out_pin_retry_left
      * @return 0 verify OK
      */
-    public int MC_VerifyPIN_AT88SC102(int zone, byte pin[], int out_pin_retry_left[]) {
+    public int MC_VerifyPIN_AT88SC102(int zone, byte[] pin, int[] out_pin_retry_left) {
         return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().MC_VerifyPIN_AT88SC102(zone, revertEveryByte(pin),
                 out_pin_retry_left);
     }
