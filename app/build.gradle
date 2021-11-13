@@ -12,7 +12,7 @@ android {
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
-
+        // 分包
         multiDexEnabled = true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -29,6 +29,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    // lambda 表达式的支持
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -36,6 +38,7 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+
     repositories {
         flatDir {
             dirs 'libs' //this way we can find the .aar file in libs folder
@@ -71,4 +74,5 @@ dependencies {
 //    implementation(name:'lib-ble-release', ext:'aar')
     implementation(project(path: ':lib-ble'))
 //    implementation('com.zxfh.blereader:ble-lib:0.0.1')
+//    implementation 'com.github.Minor2020:BleDemo:0.0.1'
 }

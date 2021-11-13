@@ -8,8 +8,6 @@ buildscript {
         mavenCentral() {
             url 'https://maven.aliyun.com/repository/public'
         }
-        // 使用 jitpack 仓库中的 ble-lib
-        maven {url 'https://jitpack.io'}
     }
 
     dependencies {
@@ -38,7 +36,9 @@ allprojects {
             dirs 'libs'
         }
         // 本地 maven
-        maven {url 'file:///Users/zhangyongchao02/Temp'}
+//        maven {url 'file:///Users/zhangyongchao02/Temp'}
+        // 使用 jitpack 仓库中的 ble-lib
+        maven {url 'https://jitpack.io'}
     }
 }
 
