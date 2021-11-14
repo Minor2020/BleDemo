@@ -44,7 +44,7 @@ public class BLEReader {
         com.ble.zxfh.sdk.blereader.BLEReader.getInstance().setApplication(mApplication);
         com.ble.zxfh.sdk.blereader.BLEReader.getInstance().setDeviceModel(com.ble.zxfh.sdk.blereader.BLEReader.DEVICE_MODEL_W1981);
         modifyUuid();
-        setCLA(ENCRYPT);
+//        setCLA(ENCRYPT);
     }
 
     public void setLogEnabled(boolean enabled) {
