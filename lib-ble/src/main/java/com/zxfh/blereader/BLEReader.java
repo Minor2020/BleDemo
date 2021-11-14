@@ -12,6 +12,7 @@ import com.ble.zxfh.sdk.blereader.WDBluetoothDevice;
 
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
+import android.util.Log;
 
 public class BLEReader {
 
@@ -21,7 +22,7 @@ public class BLEReader {
     private Application mApplication;
     private static final String MOCK_BLUETOOTH_NAME = "TCHGAS_BTC800001";
     /** 加密指令 */
-    private static final int ENCRYPT = 80;
+    private static final int ENCRYPT = 0x80;
 
     private BLEReader() {
 
@@ -72,7 +73,7 @@ public class BLEReader {
             modifersField.setAccessible(true);
             // 把指定的field中的final修饰符去掉
             modifersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-            field.set(null, action); // 为指定field设置新值
+            field.set(com.ble.zxfh.sdk.blereader.BLEReader.getInstance(), action);
         } catch (Exception e) {
             e.printStackTrace();
         }
