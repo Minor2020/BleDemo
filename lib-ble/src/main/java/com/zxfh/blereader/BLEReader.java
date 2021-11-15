@@ -44,7 +44,7 @@ public class BLEReader {
         com.ble.zxfh.sdk.blereader.BLEReader.getInstance().setApplication(mApplication);
         com.ble.zxfh.sdk.blereader.BLEReader.getInstance().setDeviceModel(com.ble.zxfh.sdk.blereader.BLEReader.DEVICE_MODEL_W1981);
         modifyUuid();
-//        setCLA(ENCRYPT);
+        setCLA(ENCRYPT);
     }
 
     public void setLogEnabled(boolean enabled) {
@@ -69,14 +69,18 @@ public class BLEReader {
             Field field = com.ble.zxfh.sdk.blereader.BLEReader.getInstance()
                     .getClass().getDeclaredField("CLA");
             field.setAccessible(true);
-            Field modifersField = Field.class.getDeclaredField("modifiers");
-            modifersField.setAccessible(true);
-            // 把指定的field中的final修饰符去掉
-            modifersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
             field.set(com.ble.zxfh.sdk.blereader.BLEReader.getInstance(), action);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 仅用于测试，返回sdk内部 CLA, 查看是否修改成功
+     * @return
+     */
+    public int getCLA() {
+        return com.ble.zxfh.sdk.blereader.BLEReader.getInstance().CLA;
     }
 
     /**

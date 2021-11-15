@@ -72,6 +72,7 @@ uploadArchives {
     }
 }
 
+// 配置 jitpack
 afterEvaluate {
     publishing {
         publications {
