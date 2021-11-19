@@ -9,6 +9,8 @@ import javax.crypto.spec.SecretKeySpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
 
+import android.util.Log;
+
 /**
  * 国密SM4分组密码算法工具类（对称加密）
  * <p>GB/T 32907-2016 信息安全技术 SM4分组密码算法</p>
@@ -187,7 +189,7 @@ public class Sm4Util {
         try {
             return Sm4Util.encryptEcbNoPadding(formattedFactor, primeKey);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("Sm4Util", e.getMessage());
         }
         return null;
     }

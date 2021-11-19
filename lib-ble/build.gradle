@@ -51,6 +51,7 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     // bouncy castle 也需要并入 aar （aar 体积增加 126kb->4.8M)
     implementation 'org.bouncycastle:bcprov-jdk15on:1.69'
+//    implementation('org.bouncycastle:bcprov-jdk16:1.46')
     // aar dependency
     embed(name:'BleReaderApi_zxfh', ext:'aar')
 }

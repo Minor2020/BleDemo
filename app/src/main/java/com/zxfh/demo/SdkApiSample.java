@@ -227,7 +227,7 @@ public final class SdkApiSample {
      * 测试SM4
      */
     public final void testSM4() {
-        sprintInfo("BLE(" + BLEReader.getInstance().getCLA() + ')');
+        sprintInfo("BLE(" + BLEReader.getInstance().testSm4() + ')');
     }
 
 }
