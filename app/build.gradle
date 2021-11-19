@@ -73,7 +73,7 @@ dependencies {
     implementation("androidx.multidex:multidex:2.0.1")
     implementation(name:'lib-ble-release', ext:'aar')
     // 模拟 bcprov 冲突
-//    implementation('org.bouncycastle:bcprov-jdk16:1.46')
+    implementation('org.bouncycastle:bcprov-jdk16:1.46')
 
 //    implementation(project(path: ':lib-ble'))
 //    implementation 'com.github.zxfh:blereader:0.0.1'
