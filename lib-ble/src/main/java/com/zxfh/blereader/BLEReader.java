@@ -1,7 +1,6 @@
 package com.zxfh.blereader;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,7 +11,6 @@ import com.ble.zxfh.sdk.blereader.WDBluetoothDevice;
 
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
-import android.util.Log;
 
 public class BLEReader {
 
@@ -102,6 +100,10 @@ public class BLEReader {
     public void setListener(IBLEReader_Callback callback) {
         com.ble.zxfh.sdk.blereader.BLEReader.getInstance().set_callback(new com.ble.zxfh.sdk.blereader.IBLEReader_Callback() {
 
+            long timestamp = 0;
+            byte[] mergedData;
+            int index;
+
             @Override
             public void onLeScan(List<WDBluetoothDevice> list) {
                 // Ignore.
@@ -119,7 +121,52 @@ public class BLEReader {
 
             @Override
             public void onCharacteristicChanged(int i, Object o) {
-                callback.onCharacteristicChanged(i, o);
+                if (o instanceof byte[]) {
+                    byte[] data = (byte[]) o;
+                    // 第一帧
+                    if (timestamp == 0) {
+                        if (data.length > 3) {
+                            // 原始数据长度
+                            int originDataLen = data[2];
+                            if (originDataLen > 16) { // 16 + 4 {21, 00, 10, ... CI}
+                                // 合并数据包
+                                mergedData = new byte[originDataLen + 4];
+                                System.arraycopy(data, 0, mergedData, 0, data.length);
+                                timestamp = System.currentTimeMillis();
+                                index = data.length;
+                                return;
+                            }
+                        }
+                        callback.onCharacteristicChanged(i, o);
+                    } else {
+                        if (System.currentTimeMillis() - timestamp < 10) {
+                            // 拼接后续帧
+                            System.arraycopy(data, 0, mergedData, index, Math.min(data.length,
+                                    mergedData.length - index));
+                            timestamp = System.currentTimeMillis();
+                            index += data.length;
+                            if (index >= mergedData.length) {
+                                callback.onCharacteristicChanged(i, mergedData);
+                                clean();
+                            }
+                        } else {
+                            // 兜底 > 10ms 丢弃原始数据
+                            callback.onCharacteristicChanged(i, o);
+                            clean();
+                        }
+                    }
+                } else {
+                    callback.onCharacteristicChanged(i, o);
+                }
+            }
+
+            /**
+             * 清除全局属性值
+             */
+            private void clean() {
+                timestamp = 0;
+                mergedData = null;
+                index = 0;
             }
 
             @Override

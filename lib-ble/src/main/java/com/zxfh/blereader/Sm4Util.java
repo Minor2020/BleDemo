@@ -90,7 +90,7 @@ public class Sm4Util {
             ivParameterSpec = new IvParameterSpec(iv);
         }
         SecretKeySpec sm4Key = new SecretKeySpec(key, ALGORITHM_NAME);
-        Cipher cipher = Cipher.getInstance(sm4mode, new BouncyCastleProvider());// BouncyCastleProvider.PROVIDER_NAME);
+        Cipher cipher = Cipher.getInstance(sm4mode, new BouncyCastleProvider());
         if (null == ivParameterSpec) {
             cipher.init(mode, sm4Key);
         } else {

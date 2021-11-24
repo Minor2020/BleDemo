@@ -28,6 +28,7 @@ public final class SdkApiSample {
     private byte[] MOCK_SEND_DATA = new byte[] {18, 0, 5, 0, 18, 0, 0, 0, 5};
     /** onCharacteristicChanged 回传数据 */
     private byte[] dynamicBytes;
+    private int cardType = 0;
 
     /** BLE SDK 回调 */
     IBLEReader_Callback bleCallback = new IBLEReader_Callback() {
@@ -60,7 +61,6 @@ public final class SdkApiSample {
             dynamicBytes = data;
             String hexStr = BytesUtils.Companion.getHexStr(dynamicBytes);
             sprintInfo("onCharacteristicChanged status " + p0 + " data " + hexStr);
-
         }
 
         public void onReadRemoteRssi(int p0) {
@@ -164,7 +164,13 @@ public final class SdkApiSample {
      * 写卡数据
      */
     public final void writeData() {
-        int res = BLEReader.getInstance().MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_MTZ, 0, new byte[] {18, 52}, 0, 2);
+        int res = -1;
+        if (cardType == BLEReader.CARD_TYPE_AT88SC102) {
+            res = BLEReader.getInstance().MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_MTZ, 0, new byte[] {18, 52}, 0, 2);
+        } else if (cardType == BLEReader.CARD_TYPE_AT24C02) {
+            res = BLEReader.getInstance().MC_Write_AT24C02(0, new byte[] {0, (byte)0xB0, 0, 0, (byte)0xC3},
+                    0, 5);
+        }
         sprintInfo("写数据返回值 " + res);
     }
 
@@ -181,7 +187,13 @@ public final class SdkApiSample {
      * 读卡数据
      */
     public final void readData() {
-        int result = BLEReader.getInstance().MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_MTZ, 0, 2, new byte[100]);
+        int result = -1;
+        if (cardType == BLEReader.CARD_TYPE_AT88SC102) {
+            result = BLEReader.getInstance().MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_MTZ, 0, 2,
+                    new byte[100]);
+        } else if (cardType == BLEReader.CARD_TYPE_AT24C02) {
+            result = BLEReader.getInstance().MC_Read_AT24C02(0, 15, new byte[100]); // 21(0x15)
+        }
         sprintInfo("读卡数据返回 " + result);
     }
 
@@ -190,6 +202,7 @@ public final class SdkApiSample {
      */
     public final void checkMode() {
         int res = BLEReader.getInstance().ICC_GetCardType(false);
+        cardType = res;
         if (res == BLEReader.CARD_TYPE_AT88SC102) {
             sprintInfo("卡类型 CARD_TYPE_AT88SC102 值 " + res);
         } else if (res == BLEReader.CARD_TYPE_AT24C02) {
