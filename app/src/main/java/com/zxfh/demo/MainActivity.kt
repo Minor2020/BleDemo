@@ -150,8 +150,6 @@ class MainActivity : AppCompatActivity() {
                 val status = bleSdkAdapter?.pairBle(macAddress)
                 if (status == 0) {
                     sprintInfo("蓝牙已连接")
-                    sprintInfo("蓝牙固件 UUID: ")
-                    sprintInfo(ReflectionUuid.getDeviceUuid())
                 } else {
                     sprintInfo("蓝牙连接失败")
                 }
