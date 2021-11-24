@@ -8,12 +8,19 @@ android {
 
     defaultConfig {
         applicationId "com.zxfh.demo"
-        minSdkVersion 23
+        minSdkVersion 18
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
+        // 分包
+        multiDexEnabled = true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    dexOptions {
+        javaMaxHeapSize "4g"
+        jumboMode = true
     }
 
     buildTypes {
@@ -22,6 +29,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    // lambda 表达式的支持
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -29,6 +38,15 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+
+    repositories {
+        flatDir {
+            dirs 'libs' //this way we can find the .aar file in libs folder
+            // 子 module 引入 libs, TODO: 对外输出不依赖 lib-ble,需删除
+            dirs '../lib-ble/libs'
+        }
+    }
+
 }
 
 dependencies {
@@ -45,13 +63,18 @@ dependencies {
     debugImplementation("androidx.fragment:fragment-testing:1.3.6")
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation(name:'BleReaderApi_zxfh', ext:'aar')
     implementation 'androidx.core:core-ktx:1.3.1'
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
     // 十六进制和二进制互相转换
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
-
+    // 放法数超限
+    implementation("androidx.multidex:multidex:2.0.1")
+    // 模拟 bcprov 冲突
+    implementation('org.bouncycastle:bcprov-jdk16:1.46')
+    // 引入 lib-ble
+//    implementation(name:'lib-ble-release', ext:'aar')
     implementation(project(path: ':lib-ble'))
+//    implementation 'com.github.zxfh:blereader:0.0.1'
 }
