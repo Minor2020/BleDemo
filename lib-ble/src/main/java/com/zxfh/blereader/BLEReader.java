@@ -4,10 +4,9 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.UUID;
 
-import org.bouncycastle.util.encoders.Hex;
-
 import com.ble.zxfh.sdk.blereader.LOG;
 import com.ble.zxfh.sdk.blereader.WDBluetoothDevice;
+import com.zxfh.util.encoders.Hex;
 
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
@@ -139,7 +138,7 @@ public class BLEReader {
                         }
                         callback.onCharacteristicChanged(i, o);
                     } else {
-                        if (System.currentTimeMillis() - timestamp < 10) {
+                        if (System.currentTimeMillis() - timestamp < 32) {
                             // 拼接后续帧
                             System.arraycopy(data, 0, mergedData, index, Math.min(data.length,
                                     mergedData.length - index));

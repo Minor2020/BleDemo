@@ -192,7 +192,7 @@ public final class SdkApiSample {
             result = BLEReader.getInstance().MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_MTZ, 0, 2,
                     new byte[100]);
         } else if (cardType == BLEReader.CARD_TYPE_AT24C02) {
-            result = BLEReader.getInstance().MC_Read_AT24C02(0, 15, new byte[100]); // 21(0x15)
+            result = BLEReader.getInstance().MC_Read_AT24C02(0, 16, new byte[100]); // 21(0x15)
         }
         sprintInfo("读卡数据返回 " + result);
     }

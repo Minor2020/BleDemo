@@ -49,6 +49,7 @@ ext {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation files('libs/zxfh-bcprov15on-1.54.jar')
     // aar dependency
     embed(name:'BleReaderApi_zxfh', ext:'aar')
 }

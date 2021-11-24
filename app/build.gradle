@@ -71,10 +71,10 @@ dependencies {
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
     // 放法数超限
     implementation("androidx.multidex:multidex:2.0.1")
-    implementation(name:'lib-ble-release', ext:'aar')
     // 模拟 bcprov 冲突
     implementation('org.bouncycastle:bcprov-jdk16:1.46')
-
-//    implementation(project(path: ':lib-ble'))
+    // 引入 lib-ble
+//    implementation(name:'lib-ble-release', ext:'aar')
+    implementation(project(path: ':lib-ble'))
 //    implementation 'com.github.zxfh:blereader:0.0.1'
 }
