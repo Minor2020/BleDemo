@@ -13,6 +13,7 @@ import com.zxfh.blereader.PosMemoryConstants;
 import java.util.Iterator;
 import java.util.Set;
 
+import android.util.Log;
 import kotlin.Metadata;
 import kotlin.jvm.internal.Intrinsics;
 
@@ -61,6 +62,7 @@ public final class SdkApiSample {
             dynamicBytes = data;
             String hexStr = BytesUtils.Companion.getHexStr(dynamicBytes);
             sprintInfo("onCharacteristicChanged status " + p0 + " data " + hexStr);
+            Log.d("MBLE", "data " + hexStr);
         }
 
         public void onReadRemoteRssi(int p0) {
@@ -192,7 +194,7 @@ public final class SdkApiSample {
             result = BLEReader.getInstance().MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_MTZ, 0, 2,
                     new byte[100]);
         } else if (cardType == BLEReader.CARD_TYPE_AT24C02) {
-            result = BLEReader.getInstance().MC_Read_AT24C02(0, 16, new byte[100]); // 21(0x15)
+            result = BLEReader.getInstance().MC_Read_AT24C02(0, 176, new byte[180]); // 21(0x15)
         }
         sprintInfo("读卡数据返回 " + result);
     }

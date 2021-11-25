@@ -126,7 +126,7 @@ public class BLEReader {
                     if (index == 0) {
                         if (data.length > 3) {
                             // 原始数据长度
-                            int originDataLen = data[2];
+                            int originDataLen = (data[2] & 0xFF);
                             if (originDataLen > 16) { // 16 + 4 {21, 00, 10, ... CI}
                                 // 合并数据包
                                 mergedData = new byte[originDataLen + 4];
@@ -137,6 +137,7 @@ public class BLEReader {
                         }
                         // 不满足分包要求
                         callback.onCharacteristicChanged(i, o);
+                        Log.d("MBLE", "No merge.");
                     } else if (index < mergedData.length) {
                         // 拼接后续帧
                         System.arraycopy(data, 0, mergedData, index, Math.min(data.length,
@@ -146,11 +147,13 @@ public class BLEReader {
                         if (index >= mergedData.length) {
                             callback.onCharacteristicChanged(i, mergedData);
                             clean();
+                            Log.d("MBLE", "Has merged.");
                         }
                     }
                 } else {
                     // 数据错误也返回，由用户处理
                     callback.onCharacteristicChanged(i, o);
+                    Log.d("MBLE", "Error data");
                 }
             }
 
