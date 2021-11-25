@@ -10,6 +10,7 @@ import com.zxfh.util.encoders.Hex;
 
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
+import android.util.Log;
 
 public class BLEReader {
 
@@ -99,7 +100,6 @@ public class BLEReader {
     public void setListener(IBLEReader_Callback callback) {
         com.ble.zxfh.sdk.blereader.BLEReader.getInstance().set_callback(new com.ble.zxfh.sdk.blereader.IBLEReader_Callback() {
 
-            long timestamp = 0;
             byte[] mergedData;
             int index;
 
@@ -123,7 +123,7 @@ public class BLEReader {
                 if (o instanceof byte[]) {
                     byte[] data = (byte[]) o;
                     // 第一帧
-                    if (timestamp == 0) {
+                    if (index == 0) {
                         if (data.length > 3) {
                             // 原始数据长度
                             int originDataLen = data[2];
@@ -131,30 +131,25 @@ public class BLEReader {
                                 // 合并数据包
                                 mergedData = new byte[originDataLen + 4];
                                 System.arraycopy(data, 0, mergedData, 0, data.length);
-                                timestamp = System.currentTimeMillis();
                                 index = data.length;
                                 return;
                             }
                         }
+                        // 不满足分包要求
                         callback.onCharacteristicChanged(i, o);
-                    } else {
-                        if (System.currentTimeMillis() - timestamp < 32) {
-                            // 拼接后续帧
-                            System.arraycopy(data, 0, mergedData, index, Math.min(data.length,
-                                    mergedData.length - index));
-                            timestamp = System.currentTimeMillis();
-                            index += data.length;
-                            if (index >= mergedData.length) {
-                                callback.onCharacteristicChanged(i, mergedData);
-                                clean();
-                            }
-                        } else {
-                            // 兜底 > 10ms 丢弃原始数据
-                            callback.onCharacteristicChanged(i, o);
+                    } else if (index < mergedData.length) {
+                        // 拼接后续帧
+                        System.arraycopy(data, 0, mergedData, index, Math.min(data.length,
+                                mergedData.length - index));
+                        index += data.length;
+                        // 最后一帧
+                        if (index >= mergedData.length) {
+                            callback.onCharacteristicChanged(i, mergedData);
                             clean();
                         }
                     }
                 } else {
+                    // 数据错误也返回，由用户处理
                     callback.onCharacteristicChanged(i, o);
                 }
             }
@@ -163,7 +158,6 @@ public class BLEReader {
              * 清除全局属性值
              */
             private void clean() {
-                timestamp = 0;
                 mergedData = null;
                 index = 0;
             }
