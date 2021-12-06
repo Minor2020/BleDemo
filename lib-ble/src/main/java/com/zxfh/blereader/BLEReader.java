@@ -1,6 +1,7 @@
 package com.zxfh.blereader;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,12 +16,34 @@ import android.util.Log;
 public class BLEReader {
 
     private volatile static BLEReader sMBleReader;
+    private static final String MOCK_BLUETOOTH_NAME = "TCHGAS_BTC800001";
     public static final int CARD_TYPE_AT88SC102 = 4;
     public static final int CARD_TYPE_AT24C02 = 2;
-    private Application mApplication;
-    private static final String MOCK_BLUETOOTH_NAME = "TCHGAS_BTC800001";
+    /** 各区域长度 */
+    private static final int SCAC_SIZE = 2;
+    private static final int IZ_SIZE = 8;
+    private static final int CPZ_SIZE = 8;
     /** 加密指令 */
     private static final int ENCRYPT = 0x80;
+    /** 全流程写状态机制 */
+    private int allWriteStatus = -1;
+    private static final int READING_SCAC = 1;
+    private static final int READING_IZ = 2;
+    private static final int WRITING_IZ = 3;
+    private static final int READING_CPZ = 4;
+    private static final int WRITING_CPZ = 5;
+    private static final int WRITING_AZ1 = 8;
+    private static final int WRITING_AZ2 = 16;
+    /** 全流程写入子区域 */
+    private byte[] fz = new byte[2];
+    private byte[] iz = new byte[8];
+    private byte[] sc = new byte[2];
+    private byte[] scac = new byte[2];
+    private byte[] cpz = new byte[8];
+    private byte[] az1 = new byte[64];
+    private byte[] az2 = new byte[64];
+    /** application 环境变量 */
+    private Application mApplication;
 
     private BLEReader() {
 
@@ -120,6 +143,103 @@ public class BLEReader {
 
             @Override
             public void onCharacteristicChanged(int i, Object o) {
+                // NOTE: 如果开始全流程写，『迅速』点击其他指令，回调数据会有污染，由使用方保证。
+                if (allWriteStatus != -1) {
+                    processAllWriteCallback(i, o);
+                } else {
+                    mergeDataIfNeeded(i, o);
+                }
+            }
+
+            @Override
+            public void onReadRemoteRssi(int i) {
+                callback.onReadRemoteRssi(i);
+            }
+
+            @Override
+            public void onOTA(int i, Object o) {
+                callback.onOTA(i, o);
+            }
+
+            @Override
+            public int onChangeBLEParameter() {
+                return callback.onChangeBLEParameter();
+            }
+
+            /**
+             * 处理全写流程中的回调
+             * @param status
+             * @param data
+             */
+            private void processAllWriteCallback(int status, Object data) {
+                int preAllWriteStatus = allWriteStatus;
+                if (data instanceof byte[]) {
+                    byte[] response = (byte[]) data;
+                    if (response.length > 3) {
+                        int length = (response[2] & 0xFF);
+                        switch (allWriteStatus) {
+                            case READING_SCAC:
+                                if (length >= SCAC_SIZE) {
+                                    byte[] curScac = new byte[SCAC_SIZE];
+                                    System.arraycopy(response, 2, curScac, 0, SCAC_SIZE);
+                                    if (Arrays.equals(curScac, new byte[]{(byte) 0xFF, (byte) 0xFF})) {
+                                        // 继续读取 IZ 区域
+                                        allWriteStatus = READING_IZ;
+                                        MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_IZ, 0, 8, new byte[8]);
+                                    } else {
+                                        // 终止读写，返回 2100026985
+                                        callback.onCharacteristicChanged(status,
+                                                new byte[]{(byte) 0x21, (byte) 0, (byte) 2, (byte) 0x69, (byte) 0x85});
+                                    }
+                                }
+                                break;
+                            case READING_IZ:
+                                if (length >= IZ_SIZE) {
+                                    byte[] curIz = new byte[IZ_SIZE];
+                                    System.arraycopy(response, 2, curIz, 0, IZ_SIZE);
+                                    if (Arrays.equals(curIz, iz)) {
+                                        // 写入 IZ
+                                        MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_IZ, 0, iz, 0,
+                                                IZ_SIZE);
+                                    }
+                                    // 继续读取 CPZ 区域
+                                    allWriteStatus = READING_CPZ;
+                                    MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_CPZ, 0, 8, new byte[8]);
+                                }
+                                break;
+                            case READING_CPZ:
+                                if (length >= CPZ_SIZE) {
+                                    byte[] curCpz = new byte[CPZ_SIZE];
+                                    System.arraycopy(response, 2, curCpz, 0, CPZ_SIZE);
+                                    if (!Arrays.equals(curCpz, cpz)) {
+                                        // 写入 cpz
+                                        MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_CPZ, 0, cpz, 0,
+                                                CPZ_SIZE);
+                                    }
+                                    MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ1, 0, az1, 0, 64);
+                                    MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ2, 0, az2, 0, 64);
+                                }
+                                break;
+                            case WRITING_AZ1:
+                                // NOTE：如果硬件不支持并发读写，需要该该机制保证顺序读写
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+                // 终止全流程写
+                if (preAllWriteStatus == allWriteStatus) {
+                    allWriteStatus = -1;
+                }
+            }
+
+            /**
+             * 根据需要合并数据
+             * @param i
+             * @param o
+             */
+            private void mergeDataIfNeeded(int i, Object o) {
                 if (o instanceof byte[]) {
                     byte[] data = (byte[]) o;
                     // 第一帧
@@ -162,21 +282,30 @@ public class BLEReader {
                 index = 0;
             }
 
-            @Override
-            public void onReadRemoteRssi(int i) {
-                callback.onReadRemoteRssi(i);
-            }
-
-            @Override
-            public void onOTA(int i, Object o) {
-                callback.onOTA(i, o);
-            }
-
-            @Override
-            public int onChangeBLEParameter() {
-                return callback.onChangeBLEParameter();
-            }
         });
+    }
+
+
+    /**
+     * AT88SC102 流程读写. 调用方处理相关异常
+     * @param start_address
+     * @param write_data
+     * @param write_len
+     * @return int 返回值没有任何意义，需要根据 onCharacteristicChanged 回调具体判断
+     */
+    public int MC_All_Write_AT88SC102(int start_address, byte[] write_data, int write_len) throws Exception {
+        // 1. 截取相关区域
+        System.arraycopy(write_data, 0, fz, 0, fz.length);
+        System.arraycopy(write_data, 2, iz, 0, iz.length);
+        System.arraycopy(write_data, 10, sc, 0, sc.length);
+        System.arraycopy(write_data, 12, scac, 0, scac.length);
+        System.arraycopy(write_data, 14, cpz, 0, cpz.length);
+        System.arraycopy(write_data, 22, az1, 0, az1.length);
+        System.arraycopy(write_data, 92, az2, 0, az2.length);
+        // 2. 读取 scac 区域数据
+        allWriteStatus = READING_SCAC;
+        MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_SCAC, 0, 2, new byte[2]);
+        return 0;
     }
 
     public String getUuid() {
