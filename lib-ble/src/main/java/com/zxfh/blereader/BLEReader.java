@@ -32,8 +32,9 @@ public class BLEReader {
     private static final int WRITING_IZ = 3;
     private static final int READING_CPZ = 4;
     private static final int WRITING_CPZ = 5;
-    private static final int WRITING_AZ1 = 8;
-    private static final int WRITING_AZ2 = 16;
+    private static final int WRITING_AZ1 = 7;
+    private static final int WRITING_AZ2 = 8;
+    private static final int UPDATE_PIN = 9;
     /** 全流程写入子区域 */
     private byte[] fz = new byte[2];
     private byte[] iz = new byte[8];
@@ -182,10 +183,11 @@ public class BLEReader {
                                 if (length >= SCAC_SIZE) {
                                     byte[] curScac = new byte[SCAC_SIZE];
                                     System.arraycopy(response, 2, curScac, 0, SCAC_SIZE);
+                                    // scac == FFFFF
                                     if (Arrays.equals(curScac, new byte[]{(byte) 0xFF, (byte) 0xFF})) {
-                                        // 继续读取 IZ 区域
-                                        allWriteStatus = READING_IZ;
                                         MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_IZ, 0, 8, new byte[8]);
+                                        // 下一流程，继续读取 IZ 区域
+                                        allWriteStatus = READING_IZ;
                                     } else {
                                         // 终止读写，返回 2100026985
                                         callback.onCharacteristicChanged(status,
@@ -198,37 +200,65 @@ public class BLEReader {
                                     byte[] curIz = new byte[IZ_SIZE];
                                     System.arraycopy(response, 2, curIz, 0, IZ_SIZE);
                                     if (Arrays.equals(curIz, iz)) {
+                                        // iz相同，跳过写入，继续读取 CPZ 区域
+                                        MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_CPZ, 0, 8,
+                                                new byte[8]);
+                                        // 下一流程，读取 cpz
+                                        allWriteStatus = READING_CPZ;
+                                    } else {
                                         // 写入 IZ
                                         MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_IZ, 0, iz, 0,
                                                 IZ_SIZE);
+                                        allWriteStatus = WRITING_IZ;
                                     }
-                                    // 继续读取 CPZ 区域
-                                    allWriteStatus = READING_CPZ;
-                                    MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_CPZ, 0, 8, new byte[8]);
                                 }
                                 break;
+                            case WRITING_IZ:
+                                // 继续读取 CPZ 区域
+                                MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_CPZ, 0, 8, new byte[8]);
+                                // 下一流程，读取 cpz
+                                allWriteStatus = READING_CPZ;
                             case READING_CPZ:
                                 if (length >= CPZ_SIZE) {
                                     byte[] curCpz = new byte[CPZ_SIZE];
                                     System.arraycopy(response, 2, curCpz, 0, CPZ_SIZE);
-                                    if (!Arrays.equals(curCpz, cpz)) {
-                                        // 写入 cpz
+                                    if (Arrays.equals(curCpz, cpz)) {
+                                        // cpz 相同，跳过写入，直接写入 az1
+                                        MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ1, 0, az1, 0, 64);
+                                        // 下一流程，写入 az2
+                                        allWriteStatus = WRITING_AZ2;
+                                    } else {
                                         MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_CPZ, 0, cpz, 0,
                                                 CPZ_SIZE);
+                                        // 下一流程，写入 az1
+                                        allWriteStatus = WRITING_AZ1;
                                     }
-                                    MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ1, 0, az1, 0, 64);
-                                    MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ2, 0, az2, 0, 64);
                                 }
                                 break;
                             case WRITING_AZ1:
-                                // NOTE：如果硬件不支持并发读写，需要该该机制保证顺序读写
+                                // 写入 az1
+                                MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ1, 0, az1, 0, 64);
+                                // 下一流程，写入 az2
+                                allWriteStatus = WRITING_AZ2;
+                                break;
+                            case WRITING_AZ2:
+                                // 写入 az2
+                                MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ2, 0, az2, 0, 64);
+                                // 下一流程，修改密码
+                                allWriteStatus = UPDATE_PIN;
+                                break;
+                            case UPDATE_PIN:
+                                // 修改密码
+                                MC_UpdatePIN_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_SC, sc);
+                                // 全流程结束，回调走正常路线
+                                allWriteStatus = -1;
                                 break;
                             default:
                                 break;
                         }
                     }
                 }
-                // 终止全流程写
+                // 并未进入下一流程，终止全流程写
                 if (preAllWriteStatus == allWriteStatus) {
                     allWriteStatus = -1;
                 }
@@ -304,7 +334,7 @@ public class BLEReader {
         System.arraycopy(write_data, 92, az2, 0, az2.length);
         // 2. 读取 scac 区域数据
         allWriteStatus = READING_SCAC;
-        MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_SCAC, 0, 2, new byte[2]);
+        MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_SCAC, 0, 2, new byte[10]);
         return 0;
     }
 
