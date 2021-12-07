@@ -224,6 +224,7 @@ public class BLEReader {
                                 MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_CPZ, 0, CPZ_SIZE, new byte[8]);
                                 // 下一流程，读取 cpz
                                 allWriteStatus = READING_CPZ;
+                                break;
                             case READING_CPZ:
                                 if (length >= CPZ_SIZE) {
                                     byte[] curCpz = new byte[CPZ_SIZE];
