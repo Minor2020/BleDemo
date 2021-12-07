@@ -11,6 +11,7 @@ import com.zxfh.util.encoders.Hex;
 
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
+import android.util.Log;
 
 public class BLEReader {
 
@@ -36,6 +37,8 @@ public class BLEReader {
     private static final int WRITING_AZ1 = 5;
     private static final int WRITING_AZ2 = 6;
     private static final int UPDATE_PIN = 7;
+    /** data 区域开始 index */
+    private static final int DATA_INDEX = 3;
     /** 全流程写入子区域 */
     private byte[] fz;
     private byte[] iz;
@@ -177,6 +180,7 @@ public class BLEReader {
                 int preAllWriteStatus = allWriteStatus;
                 if (status >= 0 && data instanceof byte[]) {
                     byte[] response = (byte[]) data;
+                    // 210004ffff9000b5
                     if (response.length > 3) {
                         int length = (response[2] & 0xFF);
                         switch (allWriteStatus) {
@@ -184,7 +188,7 @@ public class BLEReader {
                                 if (length >= SCAC_SIZE) {
                                     byte[] curScac = new byte[SCAC_SIZE];
                                     // 读取 scac data 区域
-                                    System.arraycopy(response, 2, curScac, 0, SCAC_SIZE);
+                                    System.arraycopy(response, DATA_INDEX, curScac, 0, SCAC_SIZE);
                                     // scac == FFFFF
                                     if (Arrays.equals(curScac, new byte[]{(byte) 0xFF, (byte) 0xFF})) {
                                         MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_IZ, 0, IZ_SIZE,
@@ -204,7 +208,7 @@ public class BLEReader {
                                 if (length >= IZ_SIZE) {
                                     byte[] curIz = new byte[IZ_SIZE];
                                     // 读取 iz data 区域
-                                    System.arraycopy(response, 2, curIz, 0, IZ_SIZE);
+                                    System.arraycopy(response, DATA_INDEX, curIz, 0, IZ_SIZE);
                                     if (Arrays.equals(curIz, iz)) {
                                         // iz相同，跳过写入，继续读取 CPZ 区域
                                         MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_CPZ, 0, IZ_SIZE,
@@ -228,7 +232,7 @@ public class BLEReader {
                             case READING_CPZ:
                                 if (length >= CPZ_SIZE) {
                                     byte[] curCpz = new byte[CPZ_SIZE];
-                                    System.arraycopy(response, 2, curCpz, 0, CPZ_SIZE);
+                                    System.arraycopy(response, DATA_INDEX, curCpz, 0, CPZ_SIZE);
                                     if (Arrays.equals(curCpz, cpz)) {
                                         // cpz 相同，跳过写入，直接写入 az1
                                         MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ1, 0, az1, 0, AZ_SIZE);
