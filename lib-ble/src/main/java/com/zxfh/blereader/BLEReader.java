@@ -15,6 +15,7 @@ import android.bluetooth.BluetoothAdapter;
 public class BLEReader {
 
     private volatile static BLEReader sMBleReader;
+    private static final String TAG = "BLEReaderWrapper";
     private static final String MOCK_BLUETOOTH_NAME = "TCHGAS_BTC800001";
     public static final int CARD_TYPE_AT88SC102 = 4;
     public static final int CARD_TYPE_AT24C02 = 2;
@@ -174,9 +175,8 @@ public class BLEReader {
              */
             private void processAllWriteCallback(int status, Object data) {
                 int preAllWriteStatus = allWriteStatus;
-                if (data instanceof byte[]) {
+                if (status >= 0 && data instanceof byte[]) {
                     byte[] response = (byte[]) data;
-                    // TODO: 若 status 不满足，应终止流程。但手头没有每个阶段的特征值, 故未做处理。eg: && status == 0
                     if (response.length > 3) {
                         int length = (response[2] & 0xFF);
                         switch (allWriteStatus) {
@@ -267,6 +267,7 @@ public class BLEReader {
                 // 并未进入下一流程，终止全流程写
                 if (preAllWriteStatus == allWriteStatus) {
                     // 抛出回调信息
+                    LOG.d(TAG, "All write status : " + allWriteStatus);
                     callback.onCharacteristicChanged(status, data);
                     allWriteStatus = ALL_WRITE_END;
                 }
