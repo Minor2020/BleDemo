@@ -11,7 +11,6 @@ import com.zxfh.util.encoders.Hex;
 
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
-import android.util.Log;
 
 public class BLEReader {
 
@@ -27,7 +26,8 @@ public class BLEReader {
     /** 加密指令 */
     private static final int ENCRYPT = 0x80;
     /** 全流程写状态机制 */
-    private int allWriteStatus = -1;
+    private int allWriteStatus = ALL_WRITE_END;
+    private static final int ALL_WRITE_END = -1;
     private static final int READING_SCAC = 1;
     private static final int READING_IZ = 2;
     private static final int WRITING_IZ = 3;
@@ -145,7 +145,7 @@ public class BLEReader {
             @Override
             public void onCharacteristicChanged(int i, Object o) {
                 // NOTE: 如果开始全流程写，『迅速』点击其他指令，回调数据会有污染，由使用方保证。
-                if (allWriteStatus != -1) {
+                if (allWriteStatus != ALL_WRITE_END) {
                     processAllWriteCallback(i, o);
                 } else {
                     mergeDataIfNeeded(i, o);
@@ -176,6 +176,7 @@ public class BLEReader {
                 int preAllWriteStatus = allWriteStatus;
                 if (data instanceof byte[]) {
                     byte[] response = (byte[]) data;
+                    // TODO: 若 status 不满足，应终止流程。但手头没有每个阶段的特征值, 故未做处理。eg: && status == 0
                     if (response.length > 3) {
                         int length = (response[2] & 0xFF);
                         switch (allWriteStatus) {
@@ -194,7 +195,7 @@ public class BLEReader {
                                         // 终止读写，返回 2100026985
                                         callback.onCharacteristicChanged(status,
                                                 new byte[]{(byte) 0x21, (byte) 0, (byte) 2, (byte) 0x69, (byte) 0x85});
-                                        allWriteStatus = -1;
+                                        allWriteStatus = ALL_WRITE_END;
                                         return;
                                     }
                                 }
@@ -255,7 +256,9 @@ public class BLEReader {
                             case UPDATE_PIN:
                                 // 修改密码
                                 MC_UpdatePIN_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_SC, sc);
-                                break;
+                                // 下一流程，全流程写结束，update pin 回调会进入普通逻辑
+                                allWriteStatus = ALL_WRITE_END;
+                                return;
                             default:
                                 break;
                         }
@@ -263,9 +266,9 @@ public class BLEReader {
                 }
                 // 并未进入下一流程，终止全流程写
                 if (preAllWriteStatus == allWriteStatus) {
-                    // 抛出 update pin 后的回调或者错误信息
+                    // 抛出回调信息
                     callback.onCharacteristicChanged(status, data);
-                    allWriteStatus = -1;
+                    allWriteStatus = ALL_WRITE_END;
                 }
             }
 
