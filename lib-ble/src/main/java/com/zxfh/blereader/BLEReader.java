@@ -34,9 +34,11 @@ public class BLEReader {
     private static final int READING_IZ = 2;
     private static final int WRITING_IZ = 3;
     private static final int READING_CPZ = 4;
-    private static final int WRITING_AZ1 = 5;
-    private static final int WRITING_AZ2 = 6;
-    private static final int UPDATE_PIN = 7;
+    private static final int ERASE_AZ1 = 5;
+    private static final int WRITING_AZ1 = 6;
+    private static final int ERASE_AZ2 = 7;
+    private static final int WRITING_AZ2 = 8;
+    private static final int UPDATE_PIN = 9;
     /** data 区域开始 index */
     private static final int DATA_INDEX = 3;
     /** 全流程写入子区域 */
@@ -246,11 +248,17 @@ public class BLEReader {
                                     }
                                 }
                                 break;
+                            case ERASE_AZ1:
+                                // TODO: 擦除 AZ1 区域
+                                break;
                             case WRITING_AZ1:
                                 // 写入 az1
                                 MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ1, 0, az1, 0, AZ_SIZE);
                                 // 下一流程，写入 az2
                                 allWriteStatus = WRITING_AZ2;
+                                break;
+                            case ERASE_AZ2:
+                                // TODO：擦除 AZ2 区域
                                 break;
                             case WRITING_AZ2:
                                 // 写入 az2

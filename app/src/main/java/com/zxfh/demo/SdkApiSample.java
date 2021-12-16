@@ -17,6 +17,7 @@ import android.util.Log;
 import kotlin.Metadata;
 import kotlin.jvm.internal.Intrinsics;
 
+import org.bouncycastle.util.encoders.Hex;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,6 +31,12 @@ public final class SdkApiSample {
     /** onCharacteristicChanged 回传数据 */
     private byte[] dynamicBytes;
     private int cardType = 0;
+    /** 写入模拟数据 */
+    byte[] MOCK_ALL_WRITE_DATA =  Hex.decode("0F0F1A58415251475300F0F0FFFFFFFFFF00000010FF00002C2C5AB4" +
+            "A067D3D3A54B5F98FFFF00802ED87336FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" +
+            "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000FFFFFFFFFFFFFFFF0102000042CC03FF0000" +
+            "07D00000001020000101FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" +
+            "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
 
     /** BLE SDK 回调 */
     IBLEReader_Callback bleCallback = new IBLEReader_Callback() {
@@ -168,7 +175,12 @@ public final class SdkApiSample {
     public final void writeData() {
         int res = -1;
         if (cardType == BLEReader.CARD_TYPE_AT88SC102) {
-            res = BLEReader.getInstance().MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_MTZ, 0, new byte[] {18, 52}, 0, 2);
+//            res = BLEReader.getInstance().MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_MTZ, 0, new byte[] {18, 52}, 0, 2);
+            try {
+                res = BLEReader.getInstance().MC_All_Write_AT88SC102(0, MOCK_ALL_WRITE_DATA, MOCK_ALL_WRITE_DATA.length);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else if (cardType == BLEReader.CARD_TYPE_AT24C02) {
             res = BLEReader.getInstance().MC_Write_AT24C02(0, new byte[] {0, (byte)0xB0, 0, 0, (byte)0xC3},
                     0, 5);
