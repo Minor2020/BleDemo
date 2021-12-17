@@ -3,24 +3,16 @@ package com.zxfh.demo;
 import static com.zxfh.demo.MainActivityKt.REQUEST_ENABLE_BT;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 
 import com.zxfh.blereader.BLEReader;
 import com.zxfh.blereader.IBLEReader_Callback;
 import com.zxfh.blereader.PosMemoryConstants;
 
-import java.util.Iterator;
-import java.util.Set;
-
 import android.util.Log;
 import android.view.View;
 
-import kotlin.Metadata;
-import kotlin.jvm.internal.Intrinsics;
-
 import org.bouncycastle.util.encoders.Hex;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class SdkApiSample {
@@ -33,7 +25,7 @@ public final class SdkApiSample {
     /** onCharacteristicChanged 回传数据 */
     private byte[] dynamicBytes;
     private int cardType = 0;
-    /** 写入模拟数据 */
+    /** 全写入模拟数据 */
     byte[] MOCK_ALL_WRITE_DATA =  Hex.decode("0F0F1A58415251475300F0F0FFFFFFFFFF00000010FF00002C2C5AB4" +
             "A067D3D3A54B5F98FFFF00802ED87336FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" +
             "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000FFFFFFFFFFFFFFFF0102000042CC03FF0000" +
@@ -180,8 +172,6 @@ public final class SdkApiSample {
 //            res = BLEReader.getInstance().MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_MTZ, 0, new byte[] {18, 52}, 0, 2);
             try {
                 res = BLEReader.getInstance().MC_All_Write_AT88SC102(0, MOCK_ALL_WRITE_DATA, MOCK_ALL_WRITE_DATA.length, activity);
-//                res = Debug_All_Write_AT88SC102(MOCK_ALL_WRITE_DATA);
-//                view.getBackground().setAlpha(128 + currentModel * 15);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -260,85 +250,5 @@ public final class SdkApiSample {
     public final void testSM4() {
         sprintInfo("BLE(" + BLEReader.getInstance().testSm4() + ')');
     }
-
-
-    /** 全流程写入子区域 */
-    private byte[] fz;
-    private byte[] iz;
-    private byte[] sc;
-    private byte[] scac;
-    private byte[] cpz;
-    private byte[] az1;
-    private byte[] az2;
-    /** 各区域长度 */
-    private static final int SCAC_SIZE = 2;
-    private static final int IZ_SIZE = 8;
-    private static final int CPZ_SIZE = 8;
-    private static final int AZ_SIZE = 64;
-    static int currentModel = 0;
-    private int Debug_All_Write_AT88SC102(byte[] write_data) {
-        switch (currentModel) {
-            case 0:
-                // 0. 初始化
-                fz = new byte[2];
-                iz = new byte[8];
-                sc = new byte[2];
-                scac = new byte[SCAC_SIZE];
-                cpz = new byte[CPZ_SIZE];
-                az1 = new byte[AZ_SIZE];
-                az2 = new byte[AZ_SIZE];
-                // 1. 截取相关区域
-                System.arraycopy(write_data, 0, fz, 0, fz.length);
-                System.arraycopy(write_data, 2, iz, 0, iz.length);
-                System.arraycopy(write_data, 10, sc, 0, sc.length);
-                System.arraycopy(write_data, 12, scac, 0, scac.length);
-                System.arraycopy(write_data, 14, cpz, 0, cpz.length);
-                System.arraycopy(write_data, 22, az1, 0, az1.length);
-                System.arraycopy(write_data, 92, az2, 0, az2.length);
-                break;
-            case 1:
-                // 读取 scac 区域
-                BLEReader.getInstance().MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_SCAC, 0, 2,
-                        new byte[10]);
-                break;
-            case 2:
-                // 读取 iz 区域
-                BLEReader.getInstance().MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_IZ, 0, IZ_SIZE,
-                        new byte[8]);
-                break;
-            case 3:
-                // 写入 IZ
-                BLEReader.getInstance().MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_IZ, 0, iz, 0,
-                        IZ_SIZE);
-                break;
-            case 4:
-                // 读取 CPZ 区域
-                BLEReader.getInstance().MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_CPZ, 0, IZ_SIZE,
-                        new byte[8]);
-                break;
-            case 5:
-                // 写入 cpz 区域
-                BLEReader.getInstance().MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_CPZ, 0, cpz, 0,
-                        CPZ_SIZE);
-                break;
-            case 6:
-                // 写入 az1
-                BLEReader.getInstance().MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ1, 0, az1, 0, AZ_SIZE);
-                break;
-            case 7:
-                // 写入 az2
-                BLEReader.getInstance().MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ2, 0, az2, 0, AZ_SIZE);
-                break;
-            case 8:
-                // 修改密码
-                BLEReader.getInstance().MC_UpdatePIN_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_SC, sc);
-                break;
-            default:
-                currentModel = -1;
-                break;
-        }
-        return currentModel++;
-    }
-
 }
 

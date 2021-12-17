@@ -13,6 +13,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
 import android.os.Handler;
+import android.util.Log;
 
 public class BLEReader {
 
@@ -54,6 +55,7 @@ public class BLEReader {
     private Application mApplication;
     /** 主线程 handler */
     private Handler handler;
+    private long allWriteStartTime;
 
     private BLEReader() {
 
@@ -129,6 +131,13 @@ public class BLEReader {
         }
     }
 
+    private void logAllWriteDurationIfNeeded() {
+        if (allWriteStartTime != 0 && allWriteStatus == ALL_WRITE_END) {
+            LOG.d(TAG, "All write duration " + (System.currentTimeMillis() - allWriteStartTime));
+            allWriteStartTime = 0;
+        }
+    }
+
     /**
      * 设置 IBLEReader_Callback
      * @param callback
@@ -161,6 +170,7 @@ public class BLEReader {
                 if (allWriteStatus != ALL_WRITE_END) {
                     processAllWriteCallback(i, o);
                 } else {
+                    logAllWriteDurationIfNeeded();
                     mergeDataIfNeeded(i, o);
                 }
             }
@@ -315,7 +325,7 @@ public class BLEReader {
                                         MC_UpdatePIN_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_SC, sc);
                                     }
                                 });
-                                LOG.d(TAG, "update pin.");
+                                LOG.d(TAG, "All write end.");
                                 // 下一流程，全流程写结束，update pin 回调会进入普通逻辑
                                 allWriteStatus = ALL_WRITE_END;
                                 return;
@@ -327,7 +337,7 @@ public class BLEReader {
                 // 并未进入下一流程，终止全流程写
                 if (preAllWriteStatus == allWriteStatus) {
                     // 抛出回调信息
-                    LOG.d(TAG, "All write status : " + allWriteStatus);
+                    LOG.d(TAG, "All write error. Current status : " + allWriteStatus);
                     callback.onCharacteristicChanged(status, data);
                     allWriteStatus = ALL_WRITE_END;
                 }
@@ -384,7 +394,6 @@ public class BLEReader {
         });
     }
 
-
     /**
      * AT88SC102 流程读写. 调用方处理相关异常
      * @param start_address
@@ -396,6 +405,7 @@ public class BLEReader {
         if (activity == null) {
             return -1;
         }
+        allWriteStartTime = System.currentTimeMillis();
         handler = new Handler(activity.getMainLooper());
         // 0. 初始化
         fz = new byte[2];
