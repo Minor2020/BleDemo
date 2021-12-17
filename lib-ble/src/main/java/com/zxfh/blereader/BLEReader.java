@@ -13,7 +13,6 @@ import android.app.Activity;
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
 import android.os.Handler;
-import android.util.Log;
 
 public class BLEReader {
 
@@ -53,7 +52,8 @@ public class BLEReader {
     private byte[] az2;
     /** application 环境变量 */
     private Application mApplication;
-    private Activity mActivity;
+    /** 主线程 handler */
+    private Handler handler;
 
     private BLEReader() {
 
@@ -129,74 +129,15 @@ public class BLEReader {
         }
     }
 
-    /** 主线程 handler */
-    private Handler handler;
-
-    private void handleReadingScacResponse(int length, int status, byte[] response, IBLEReader_Callback callback) {
-        if (length >= SCAC_SIZE) {
-            byte[] curScac = new byte[SCAC_SIZE];
-            // 读取 scac data 区域
-            System.arraycopy(response, DATA_INDEX, curScac, 0, SCAC_SIZE);
-            // scac == FFFFF
-            if (Arrays.equals(curScac, new byte[]{(byte) 0xFF, (byte) 0xFF})) {
-                MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_IZ, 0, IZ_SIZE,
-                        new byte[8]);
-                // 下一流程，继续读取 IZ 区域
-                allWriteStatus = READING_IZ;
-            } else {
-                // 终止读写，返回 2100026985
-                callback.onCharacteristicChanged(status,
-                        new byte[]{(byte) 0x21, (byte) 0, (byte) 2, (byte) 0x69, (byte) 0x85});
-                allWriteStatus = ALL_WRITE_END;
-                return;
-            }
-        }
-    }
-
-    private void handleReadingIzResponse(int length, int status, byte[] response, IBLEReader_Callback callback) {
-        if (length >= IZ_SIZE) {
-            byte[] curIz = new byte[IZ_SIZE];
-            // 读取 iz data 区域
-            System.arraycopy(response, DATA_INDEX, curIz, 0, IZ_SIZE);
-            if (Arrays.equals(curIz, iz)) {
-                // iz相同，跳过写入，继续读取 CPZ 区域
-                MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_CPZ, 0, IZ_SIZE,
-                        new byte[8]);
-                // 下一流程，读取 cpz
-                allWriteStatus = READING_CPZ;
-            } else {
-                // 写入 IZ
-                MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_IZ, 0, iz, 0,
-                        IZ_SIZE);
-                allWriteStatus = WRITING_IZ;
-            }
-        }
-    }
-
-    private void handleReadingCpzResponse(int length, int status, byte[] response, IBLEReader_Callback callback) {
-        if (length >= CPZ_SIZE) {
-            byte[] curCpz = new byte[CPZ_SIZE];
-            System.arraycopy(response, DATA_INDEX, curCpz, 0, CPZ_SIZE);
-            if (Arrays.equals(curCpz, cpz)) {
-                // cpz 相同，跳过写入，直接写入 az1
-                MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ1, 0, az1, 0, AZ_SIZE);
-                // 下一流程，写入 az2
-                allWriteStatus = WRITING_AZ2;
-            } else {
-                MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_CPZ, 0, cpz, 0,
-                        CPZ_SIZE);
-                // 下一流程，写入 az1
-                allWriteStatus = WRITING_AZ1;
-            }
-        }
-    }
-
-
-
+    /**
+     * 设置 IBLEReader_Callback
+     * @param callback
+     */
     public void setListener(IBLEReader_Callback callback) {
         com.ble.zxfh.sdk.blereader.BLEReader.getInstance().set_callback(new com.ble.zxfh.sdk.blereader.IBLEReader_Callback() {
-
+            /** 合并数据 */
             byte[] mergedData;
+            /** 合并数据时的索引 */
             int index;
 
             @Override
@@ -253,20 +194,58 @@ public class BLEReader {
                         int length = (response[2] & 0xFF);
                         switch (allWriteStatus) {
                             case READING_SCAC:
-                                handler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        handleReadingScacResponse(length, status, response, callback);
+                                if (length >= SCAC_SIZE) {
+                                    byte[] curScac = new byte[SCAC_SIZE];
+                                    // 读取 scac data 区域
+                                    System.arraycopy(response, DATA_INDEX, curScac, 0, SCAC_SIZE);
+                                    // scac == FFFFF
+                                    if (Arrays.equals(curScac, new byte[]{(byte) 0xFF, (byte) 0xFF})) {
+                                        handler.post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_IZ, 0, IZ_SIZE,
+                                                        new byte[8]);
+                                            }
+                                        });
+                                        // 下一流程，继续读取 IZ 区域
+                                        allWriteStatus = READING_IZ;
+                                    } else {
+                                        // 终止读写，返回 2100026985
+                                        callback.onCharacteristicChanged(status,
+                                                new byte[]{(byte) 0x21, (byte) 0, (byte) 2, (byte) 0x69, (byte) 0x85});
+                                        allWriteStatus = ALL_WRITE_END;
+                                        return;
                                     }
-                                });
+                                }
                                 break;
                             case READING_IZ:
-                                handler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        handleReadingIzResponse(length, status, response, callback);
+                                if (length >= IZ_SIZE) {
+                                    byte[] curIz = new byte[IZ_SIZE];
+                                    // 读取 iz data 区域
+                                    System.arraycopy(response, DATA_INDEX, curIz, 0, IZ_SIZE);
+                                    if (Arrays.equals(curIz, iz)) {
+                                        handler.post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                // iz相同，跳过写入，继续读取 CPZ 区域
+                                                MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_CPZ, 0, IZ_SIZE,
+                                                        new byte[8]);
+                                            }
+                                        });
+                                        // 下一流程，读取 cpz
+                                        allWriteStatus = READING_CPZ;
+                                    } else {
+                                        handler.post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                // 写入 IZ
+                                                MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_IZ, 0, iz, 0,
+                                                        IZ_SIZE);
+                                            }
+                                        });
+                                        allWriteStatus = WRITING_IZ;
                                     }
-                                });
+                                }
                                 break;
                             case WRITING_IZ:
                                 handler.post(new Runnable() {
@@ -274,18 +253,37 @@ public class BLEReader {
                                     public void run() {
                                         // 继续读取 CPZ 区域
                                         MC_Read_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_CPZ, 0, CPZ_SIZE, new byte[8]);
-                                        // 下一流程，读取 cpz
-                                        allWriteStatus = READING_CPZ;
                                     }
                                 });
+                                // 下一流程，读取 cpz
+                                allWriteStatus = READING_CPZ;
                                 break;
                             case READING_CPZ:
-                                handler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        handleReadingCpzResponse(length, status, response, callback);
+                                if (length >= CPZ_SIZE) {
+                                    byte[] curCpz = new byte[CPZ_SIZE];
+                                    System.arraycopy(response, DATA_INDEX, curCpz, 0, CPZ_SIZE);
+                                    if (Arrays.equals(curCpz, cpz)) {
+                                        handler.post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                // cpz 相同，跳过写入，直接写入 az1
+                                                MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ1, 0, az1, 0, AZ_SIZE);
+                                            }
+                                        });
+                                        // 下一流程，写入 az2
+                                        allWriteStatus = WRITING_AZ2;
+                                    } else {
+                                        handler.post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_CPZ, 0, cpz, 0,
+                                                        CPZ_SIZE);
+                                            }
+                                        });
+                                        // 下一流程，写入 az1
+                                        allWriteStatus = WRITING_AZ1;
                                     }
-                                });
+                                }
                                 break;
                             case WRITING_AZ1:
                                 handler.post(new Runnable() {
@@ -293,10 +291,10 @@ public class BLEReader {
                                     public void run() {
                                         // 写入 az1
                                         MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ1, 0, az1, 0, AZ_SIZE);
-                                        // 下一流程，写入 az2
-                                        allWriteStatus = WRITING_AZ2;
                                     }
                                 });
+                                // 下一流程，写入 az2
+                                allWriteStatus = WRITING_AZ2;
                                 break;
                             case WRITING_AZ2:
                                 handler.post(new Runnable() {
@@ -304,10 +302,10 @@ public class BLEReader {
                                     public void run() {
                                         // 写入 az2
                                         MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ2, 0, az2, 0, AZ_SIZE);
-                                        // 下一流程，修改密码
-                                        allWriteStatus = UPDATE_PIN;
                                     }
                                 });
+                                // 下一流程，修改密码
+                                allWriteStatus = UPDATE_PIN;
                                 break;
                             case UPDATE_PIN:
                                 handler.post(new Runnable() {
@@ -315,10 +313,11 @@ public class BLEReader {
                                     public void run() {
                                         // 修改密码
                                         MC_UpdatePIN_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_SC, sc);
-                                        // 下一流程，全流程写结束，update pin 回调会进入普通逻辑
-                                        allWriteStatus = ALL_WRITE_END;
                                     }
                                 });
+                                LOG.d(TAG, "update pin.");
+                                // 下一流程，全流程写结束，update pin 回调会进入普通逻辑
+                                allWriteStatus = ALL_WRITE_END;
                                 return;
                             default:
                                 break;
@@ -394,6 +393,9 @@ public class BLEReader {
      * @return int 返回值没有任何意义，需要根据 onCharacteristicChanged 回调具体判断
      */
     public int MC_All_Write_AT88SC102(int start_address, byte[] write_data, int write_len, Activity activity) throws Exception {
+        if (activity == null) {
+            return -1;
+        }
         handler = new Handler(activity.getMainLooper());
         // 0. 初始化
         fz = new byte[2];
