@@ -183,7 +183,7 @@ class MainActivity : AppCompatActivity() {
             add(CardModel(2002, "错误次数") { bleSdkAdapter?.errorCount() })
             add(CardModel(2003, "读卡数据") { bleSdkAdapter?.readData() })
             add(CardModel(2004, "核对密码") { bleSdkAdapter?.checkPassword() })
-            add(CardModel(3001, "写卡数据") { bleSdkAdapter?.writeData() })
+            add(CardModel(3001, "写卡数据") { bleSdkAdapter?.writeData(it) })
             add(CardModel(3002, "更改密码") { bleSdkAdapter?.modifyPassword() })
             add(CardModel(3005, "模块复位") { bleSdkAdapter?.reset() })
             add(CardModel(4001, "SM4测试") { bleSdkAdapter?.testSM4() })
