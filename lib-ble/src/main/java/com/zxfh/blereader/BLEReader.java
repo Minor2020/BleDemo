@@ -276,22 +276,23 @@ public class BLEReader {
                                         handler.post(new Runnable() {
                                             @Override
                                             public void run() {
-                                                // cpz 相同，跳过写入，直接写入 az1
-                                                MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ1, 0, az1, 0, AZ_SIZE);
-                                            }
-                                        });
-                                        // 下一流程，写入 az2
-                                        allWriteStatus = WRITING_AZ2;
-                                    } else {
-                                        handler.post(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_CPZ, 0, cpz, 0,
-                                                        CPZ_SIZE);
+                                                // cpz 相同，跳过写入，直接写入 az2
+                                                MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ2, 0, az2, 0, AZ_SIZE);
                                             }
                                         });
                                         // 下一流程，写入 az1
                                         allWriteStatus = WRITING_AZ1;
+                                    } else {
+                                        handler.post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                // 写入 cpz
+                                                MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_CPZ, 0, cpz, 0,
+                                                        CPZ_SIZE);
+                                            }
+                                        });
+                                        // 下一流程，写入 az2
+                                        allWriteStatus = WRITING_AZ2;
                                     }
                                 }
                                 break;
@@ -303,8 +304,8 @@ public class BLEReader {
                                         MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ1, 0, az1, 0, AZ_SIZE);
                                     }
                                 });
-                                // 下一流程，写入 az2
-                                allWriteStatus = WRITING_AZ2;
+                                // 下一流程，修改密码
+                                allWriteStatus = UPDATE_PIN;
                                 break;
                             case WRITING_AZ2:
                                 handler.post(new Runnable() {
@@ -314,8 +315,8 @@ public class BLEReader {
                                         MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_AZ2, 0, az2, 0, AZ_SIZE);
                                     }
                                 });
-                                // 下一流程，修改密码
-                                allWriteStatus = UPDATE_PIN;
+                                // 下一流程，写入 az1
+                                allWriteStatus = WRITING_AZ1;
                                 break;
                             case UPDATE_PIN:
                                 handler.post(new Runnable() {
@@ -396,12 +397,11 @@ public class BLEReader {
 
     /**
      * AT88SC102 流程读写. 调用方处理相关异常
-     * @param start_address
      * @param write_data
-     * @param write_len
+     * @param activity activity
      * @return int 返回值没有任何意义，需要根据 onCharacteristicChanged 回调具体判断
      */
-    public int MC_All_Write_AT88SC102(int start_address, byte[] write_data, int write_len, Activity activity) throws Exception {
+    public int MC_All_Write_AT88SC102(byte[] write_data, Activity activity) throws Exception {
         if (activity == null) {
             return -1;
         }

@@ -171,7 +171,7 @@ public final class SdkApiSample {
         if (cardType == BLEReader.CARD_TYPE_AT88SC102) {
 //            res = BLEReader.getInstance().MC_Write_AT88SC102(PosMemoryConstants.AT88SC102_ZONE_TYPE_MTZ, 0, new byte[] {18, 52}, 0, 2);
             try {
-                res = BLEReader.getInstance().MC_All_Write_AT88SC102(0, MOCK_ALL_WRITE_DATA, MOCK_ALL_WRITE_DATA.length, activity);
+                res = BLEReader.getInstance().MC_All_Write_AT88SC102(MOCK_ALL_WRITE_DATA, activity);
             } catch (Exception e) {
                 e.printStackTrace();
             }
